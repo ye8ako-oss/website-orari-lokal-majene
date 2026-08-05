@@ -1,0 +1,78 @@
+import type { Metadata } from "next";
+import { Inter, Poppins } from "next/font/google";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
+
+/* ============================================================
+   FONT GOOGLE: Inter (utama) & Poppins (judul)
+   Inter dipakai untuk teks isi karena sangat mudah dibaca.
+   Poppins dipakai untuk heading agar tampil modern & elegan.
+   ============================================================ */
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+/* ============================================================
+   METADATA SEO — membantu mesin pencari memahami website.
+   ============================================================ */
+export const metadata: Metadata = {
+  title: "ORARI Lokal Majene — Organisasi Amatir Radio Indonesia",
+  description:
+    "Website resmi ORARI Lokal Majene (Organisasi Amatir Radio Indonesia), Kabupaten Majene, Sulawesi Barat. Media informasi profil organisasi, berita kegiatan, layanan keanggotaan, CORE, dan dokumen resmi.",
+  keywords: [
+    "ORARI",
+    "ORARI Lokal Majene",
+    "Organisasi Amatir Radio Indonesia",
+    "Amatir Radio Majene",
+    "Radio Amatir Sulawesi Barat",
+    "CORE ORARI",
+    "Komunikasi Radio",
+    "YH8FB",
+  ],
+  authors: [{ name: "ORARI Lokal Majene" }],
+  creator: "ORARI Lokal Majene",
+  openGraph: {
+    title: "ORARI Lokal Majene — Organisasi Amatir Radio Indonesia",
+    description:
+      "Media informasi resmi ORARI Lokal Majene. Profil organisasi, berita, layanan keanggotaan, CORE, dan dokumen.",
+    siteName: "ORARI Lokal Majene",
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ORARI Lokal Majene",
+    description:
+      "Website resmi Organisasi Amatir Radio Indonesia Lokal Majene, Sulawesi Barat.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="id" suppressHydrationWarning>
+      <body
+        className={`${inter.variable} ${poppins.variable} font-sans antialiased bg-background text-foreground`}
+      >
+        {children}
+        <Toaster />
+      </body>
+    </html>
+  );
+}
