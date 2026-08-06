@@ -19,7 +19,7 @@ export function Hero() {
     >
       {/* ====== Gambar Latar ====== */}
       <Image
-        src="/images/hero-radio.jpg"
+        src="/images/banner1.png"
         alt="Operator radio amatir dengan menara antena saat matahari terbenam"
         fill
         priority
@@ -37,7 +37,9 @@ export function Hero() {
           {/* Badge kecil */}
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 text-sm text-white/90 mb-6">
             <Radio size={14} className="text-white" />
-            <span className="font-medium">{ORG_INFO.region}, {ORG_INFO.province}</span>
+            <span className="font-medium">
+              {ORG_INFO.region}, {ORG_INFO.province}
+            </span>
           </div>
 
           {/* Judul Besar */}
@@ -53,7 +55,9 @@ export function Hero() {
           {/* Lokasi */}
           <div className="mt-4 flex items-center gap-2 text-white/80">
             <MapPin size={18} className="text-[#ff6b6b]" />
-            <span>{ORG_INFO.region} — {ORG_INFO.province}</span>
+            <span>
+              {ORG_INFO.region} — {ORG_INFO.province}
+            </span>
           </div>
 
           {/* Garis pemisah */}

@@ -60,8 +60,7 @@ export const PROFIL = {
     "ORARI Lokal Majene adalah pengurus lokal Organisasi Amatir Radio Indonesia yang berkedudukan di Kabupaten Majene, Provinsi Sulawesi Barat. Organisasi ini menjadi wadah resmi bagi para amatir radio di wilayah Majene untuk berolah ilmu, berkreasi, dan berkontribusi bagi masyarakat melalui komunikasi radio.",
   sejarah:
     "ORARI (Organisasi Amatir Radio Indonesia) didirikan secara nasional pada tanggal 9 Juli 1968 di Jakarta sebagai satu-satinya wadah organisasi amatir radio yang diakui pemerintah Republik Indonesia. Seiring perkembangannya, ORARI membentuk pengurus di berbagai daerah, termasuk ORARI Lokal Majene yang melayani wilayah Kabupaten Majene, Sulawesi Barat, sebagai bagian dari ORARI Daerah Sulawesi Barat.",
-  visi:
-    "Menjadi organisasi amatir radio yang profesional, mandiri, dan terdepan dalam pengembangan ilmu pengetahuan, teknologi komunikasi radio, serta dukungan komunikasi kebencanaan di Kabupaten Majene.",
+  visi: "Menjadi organisasi amatir radio yang profesional, mandiri, dan terdepan dalam pengembangan ilmu pengetahuan, teknologi komunikasi radio, serta dukungan komunikasi kebencanaan di Kabupaten Majene.",
   misi: [
     "Membina dan mengembangkan kemampuan anggota di bidang komunikasi radio amatir.",
     "Menyelenggarakan pendidikan dan ujian amatir radio secara berkala.",
@@ -76,10 +75,16 @@ export const PROFIL = {
     "Mengembangkan persahabatan nasional maupun internasional.",
   ],
   nilai: [
-    { title: "Profesional", desc: "Bekerja dengan kompetensi dan tanggung jawab." },
+    {
+      title: "Profesional",
+      desc: "Bekerja dengan kompetensi dan tanggung jawab.",
+    },
     { title: "Kekeluargaan", desc: "Mempererat persaudaraan antar anggota." },
     { title: "Pengabdian", desc: "Mengabdi bagi masyarakat dan bangsa." },
-    { title: "Tertib Frekuensi", desc: "Menggunakan spektrum radio secara tertib." },
+    {
+      title: "Tertib Frekuensi",
+      desc: "Menggunakan spektrum radio secara tertib.",
+    },
   ],
 };
 
@@ -127,12 +132,12 @@ export const LAYANAN = [
   {
     icon: "ClipboardCheck",
     title: "UNAR",
-    desc: "Uji Negara Amatir Radio — persyaratan untuk memperoleh sertifikat amatir radio.",
+    desc: "Uji Negara Amatir Radio — persyaratan untuk memperoleh izin amatir radio.",
   },
   {
     icon: "Award",
     title: "IAR",
-    desc: "Ijazah Amatir Radio — pengakuan resmi sebagai amatir radio yang sah.",
+    desc: "Izin Amatir Radio — pengakuan resmi sebagai amatir radio yang sah.",
   },
   {
     icon: "IdCard",
@@ -142,7 +147,7 @@ export const LAYANAN = [
   {
     icon: "MonitorSmartphone",
     title: "SIORDIG",
-    desc: "Sistem Informasi Orari Digital — layanan Kementerian Komunikasi dan Digital.",
+    desc: "Sistem Orari Digital — . Sistem ini dipakai untuk mengelola administrasi keanggotaan secara elektronik.",
   },
   {
     icon: "Landmark",
@@ -236,14 +241,46 @@ export const BERITA = [
 
 /* ====== DOKUMEN ====== */
 export const DOKUMEN = [
-  { icon: "FileText", title: "AD/ART ORARI", desc: "Anggaran Dasar dan Rumah Tangga ORARI." },
-  { icon: "Handshake", title: "MoU", desc: "Nota Kesepahaman dengan mitra kerja." },
-  { icon: "FileSignature", title: "PKS", desc: "Perjanjian Kerja Sama kelembagaan." },
-  { icon: "Scale", title: "Peraturan Organisasi", desc: "Peraturan dan ketetapan organisasi." },
-  { icon: "Mail", title: "Surat Edaran", desc: "Surat edaran pengurus kepada anggota." },
-  { icon: "FileCheck", title: "Formulir", desc: "Formulir administrasi keanggotaan." },
-  { icon: "BookOpen", title: "Panduan", desc: "Panduan operasional dan teknis radio." },
-  { icon: "FolderArchive", title: "Dokumen Lainnya", desc: "Dokumen pendukung organisasi." },
+  {
+    icon: "FileText",
+    title: "AD/ART ORARI",
+    desc: "Anggaran Dasar dan Rumah Tangga ORARI.",
+  },
+  {
+    icon: "Handshake",
+    title: "MoU",
+    desc: "Nota Kesepahaman dengan mitra kerja.",
+  },
+  {
+    icon: "FileSignature",
+    title: "PKS",
+    desc: "Perjanjian Kerja Sama kelembagaan.",
+  },
+  {
+    icon: "Scale",
+    title: "Peraturan Organisasi",
+    desc: "Peraturan dan ketetapan organisasi.",
+  },
+  {
+    icon: "Mail",
+    title: "Surat Edaran",
+    desc: "Surat edaran pengurus kepada anggota.",
+  },
+  {
+    icon: "FileCheck",
+    title: "Formulir",
+    desc: "Formulir administrasi keanggotaan.",
+  },
+  {
+    icon: "BookOpen",
+    title: "Panduan",
+    desc: "Panduan operasional dan teknis radio.",
+  },
+  {
+    icon: "FolderArchive",
+    title: "Dokumen Lainnya",
+    desc: "Dokumen pendukung organisasi.",
+  },
 ];
 
 /* ====== STATISTIK (untuk counter animation) ====== */
