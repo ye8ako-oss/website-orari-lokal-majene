@@ -25,7 +25,10 @@ const poppins = Poppins({
    METADATA SEO — membantu mesin pencari memahami website.
    ============================================================ */
 export const metadata: Metadata = {
-  title: "ORARI Lokal Majene — Organisasi Amatir Radio Indonesia",
+  title: {
+    default: "ORARI Lokal Majene",
+    template: "%s | ORARI Lokal Majene",
+  },
   description:
     "Website resmi ORARI Lokal Majene (Organisasi Amatir Radio Indonesia), Kabupaten Majene, Sulawesi Barat. Media informasi profil organisasi, berita kegiatan, layanan keanggotaan, CORE, dan dokumen resmi.",
   keywords: [
@@ -40,6 +43,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "ORARI Lokal Majene" }],
   creator: "ORARI Lokal Majene",
+
+  metadataBase: new URL("https://website-orari-lokal-majene.vercel.app"),
+
   openGraph: {
     title: "ORARI Lokal Majene — Organisasi Amatir Radio Indonesia",
     description:
