@@ -217,25 +217,12 @@ export const CORE_DATA = {
 /* ====== BERITA ====== */
 export const BERITA = [
   {
-    image: "/images/news-1.jpg",
-    date: "12 Mei 2025",
-    title: "Latihan Komunikasi Darurat CORE ORARI Lokal Majene",
+    title:
+      "ORARI Lokal Majene Gelar Apel Siaga dan Perkemahan dalam Memperingati HUT ke-58 ORARI",
+    date: "11–12 Juli 2026",
     excerpt:
-      "ORARI Lokal Majene menggelar latihan komunikasi darurat CORE sebagai bentuk kesiapsiagaan menghadapi situasi bencana di wilayah Kabupaten Majene.",
-  },
-  {
-    image: "/images/news-2.jpg",
-    date: "28 April 2025",
-    title: "Penyelenggaraan Ujian Negara Amatir Radio (UNAR)",
-    excerpt:
-      "Pengurus ORARI Lokal Majene menyelenggarakan UNAR bagi calon amatir radio untuk memperoleh sertifikat dan ijazah amatir radio resmi.",
-  },
-  {
-    image: "/images/news-3.jpg",
-    date: "15 Maret 2025",
-    title: "Kegiatan Sosial dan Pengabdian Masyarakat Anggota ORARI",
-    excerpt:
-      "Anggota ORARI Lokal Majene melaksanakan kegiatan sosial kemasyarakatan sekaligus memberikan edukasi komunikasi radio kepada masyarakat.",
+      "Dalam rangka memperingati HUT ORARI ke-58, ORARI Lokal Majene melaksanakan apel siaga bersama RAPI, Pramuka, dan Desa/Kelurahan Tangguh Bencana (DESTANA). Kegiatan dilanjutkan dengan perkemahan satu malam, sosialisasi pra-JOTA kepada Pramuka, serta sosialisasi CORE kepada DESTANA Kelurahan Baru dan Kelurahan Rangas di Desyta Barane Beach, Kelurahan Baurung.",
+    image: "/images/hut-orari.jpeg",
   },
 ];
 

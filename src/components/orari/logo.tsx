@@ -12,10 +12,10 @@ type LogoProps = {
   className?: string;
   size?: number;
 };
-export function OrariLogo({ className, size = 48 }: LogoProps) {
+export function OrariLogo({ className, size = 60 }: LogoProps) {
   return (
     <Image
-      src="/images/logo-orlok-majene.png"
+      src="/images/logo-orari-lokal-majene.png"
       alt="Logo ORARI Lokal Majene"
       width={size}
       height={size}

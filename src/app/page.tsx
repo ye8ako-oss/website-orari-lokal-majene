@@ -26,7 +26,6 @@
 import { LoadingScreen } from "@/components/orari/loading-screen";
 import { Header } from "@/components/orari/header";
 import { Hero } from "@/components/orari/hero";
-import { Profil } from "@/components/orari/profil";
 import { Fungsi } from "@/components/orari/fungsi";
 import { Layanan } from "@/components/orari/layanan";
 import { Core } from "@/components/orari/core";
@@ -48,13 +47,10 @@ export default function Home() {
 
       {/* Header sticky di atas */}
       <Header />
-
       {/* Konten utama */}
       <main className="flex-1">
         {/* Hero / Beranda */}
         <Hero />
-        {/* Profil Organisasi */}
-        <Profil />
         {/* Fungsi ORARI */}
         <Fungsi />
         {/* Layanan */}

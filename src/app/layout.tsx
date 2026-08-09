@@ -1,36 +1,30 @@
 import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
+import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-/* ============================================================
-   FONT GOOGLE: Inter (utama) & Poppins (judul)
-   Inter dipakai untuk teks isi karena sangat mudah dibaca.
-   Poppins dipakai untuk heading agar tampil modern & elegan.
-   ============================================================ */
-const inter = Inter({
-  variable: "--font-inter",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
   display: "swap",
 });
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-/* ============================================================
-   METADATA SEO — membantu mesin pencari memahami website.
-   ============================================================ */
 export const metadata: Metadata = {
   title: {
     default: "ORARI Lokal Majene",
     template: "%s | ORARI Lokal Majene",
   },
+
   description:
     "Website resmi ORARI Lokal Majene (Organisasi Amatir Radio Indonesia), Kabupaten Majene, Sulawesi Barat. Media informasi profil organisasi, berita kegiatan, layanan keanggotaan, CORE, dan dokumen resmi.",
+
   keywords: [
     "ORARI",
     "ORARI Lokal Majene",
@@ -41,6 +35,7 @@ export const metadata: Metadata = {
     "Komunikasi Radio",
     "YH8FB",
   ],
+
   authors: [{ name: "ORARI Lokal Majene" }],
   creator: "ORARI Lokal Majene",
 
@@ -54,12 +49,14 @@ export const metadata: Metadata = {
     locale: "id_ID",
     type: "website",
   },
+
   twitter: {
     card: "summary_large_image",
     title: "ORARI Lokal Majene",
     description:
       "Website resmi Organisasi Amatir Radio Indonesia Lokal Majene, Sulawesi Barat.",
   },
+
   robots: {
     index: true,
     follow: true,
@@ -74,7 +71,7 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${poppins.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${manrope.variable} ${spaceGrotesk.variable} font-sans antialiased bg-background text-foreground`}
       >
         {children}
         <Toaster />

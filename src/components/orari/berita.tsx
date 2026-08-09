@@ -52,11 +52,14 @@ export function Berita() {
                   </p>
                   {/* Tombol baca selengkapnya */}
                   <a
-                    href="#berita"
+                    href="/berita/hut-orari-58"
                     className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#003366] hover:text-[#B30000] transition-colors"
                   >
                     Baca Selengkapnya
-                    <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight
+                      size={15}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
                   </a>
                 </div>
               </article>

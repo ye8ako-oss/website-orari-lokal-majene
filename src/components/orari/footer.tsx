@@ -34,16 +34,24 @@ export function Footer() {
         <div className="grid md:grid-cols-3 gap-10">
           {/* ====== KOLOM 1: Logo + Nama + Alamat ====== */}
           <div>
-            <div className="flex items-center gap-3">
-              <OrariLogo size={48} />
+            <div className="flex items-center gap-4">
+              <OrariLogo size={80} />
+
               <div>
-                <p className="font-heading font-bold text-lg leading-tight">
+                <h3 className="font-heading text-2xl font-extrabold text-white leading-tight">
                   ORARI Lokal Majene
+                </h3>
+
+                <p className="mt-2 text-[12px] tracking-[0.08em] uppercase text-white/70">
+                  Organisasi Amatir Radio Indonesia
                 </p>
-                <p className="text-xs text-white/60">Organisasi Amatir Radio Indonesia</p>
+
+                <p className="mt-0 text-[11px] font-semibold tracking-wide text-[#ff6b6b] uppercase">
+                  YH8FB - Club Station • ORARI Lokal Majene
+                </p>
               </div>
             </div>
-            <p className="mt-4 text-sm text-white/70 leading-relaxed">
+            <p className="mt-4  text-sm text-white/70 leading-relaxed">
               Media informasi resmi ORARI Lokal Majene — wadah pembinaan dan
               pengembangan amatir radio di Kabupaten Majene, Sulawesi Barat.
             </p>
@@ -114,22 +122,37 @@ export function Footer() {
               })}
             </div>
             {/* Callsign badge */}
-            <div className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-4 py-2">
-              <span className="text-xs text-white/60">Callsign:</span>
-              <span className="font-heading font-bold text-[#ff6b6b]">{ORG_INFO.callsign}</span>
-              <span className="text-white/30">|</span>
-              <span className="text-xs text-white/60">{ORG_INFO.repeater}</span>
+            <div className="mt-6 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                  YH8FB
+                </span>
+                <span className="text-xl font-bold text-[#ff6b6b]">
+                  145.250 MHz
+                </span>
+              </div>
+
+              <div className="mt-2 h-px bg-white/10" />
+
+              <div className="mt-2 flex items-center justify-between gap-4">
+                <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                  RPU
+                </span>
+                <span className="text-xl font-bold text-white">
+                  146.620 MHz
+                  <span className="text-xs text-white/50"> -600 (Offset)</span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* ====== Bagian Bawah: Hak Cipta ====== */}
         <div className="mt-12 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <p className="text-xs text-white/60">
-            © {year} ORARI Lokal Majene. Hak Cipta Dilindungi.
-          </p>
+          <p className="text-xs text-white/60">© {year} ORARI Lokal Majene</p>
           <p className="text-xs text-white/50">
-            Organisasi Amatir Radio Indonesia · Kabupaten Majene · Sulawesi Barat
+            Organisasi Amatir Radio Indonesia · Kabupaten Majene · Sulawesi
+            Barat
           </p>
         </div>
       </div>
