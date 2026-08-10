@@ -1,70 +1,127 @@
 /* ============================================================
-   SECTION BERITA
+   BERANDA — BERITA + BANNER/PENGUMUMAN + PORTAL
    ------------------------------------------------------------
-   Menampilkan tiga berita terbaru. Setiap berita terdiri dari
-   foto, judul, tanggal, ringkasan, dan tombol "Baca Selengkapnya".
+   Berita berada di sisi kiri. Banner/pengumuman dan portal
+   berada di sisi kanan agar beranda tetap ringkas.
    ============================================================ */
 import Image from "next/image";
-import { Calendar, ArrowRight } from "lucide-react";
+import { ArrowRight, Calendar } from "lucide-react";
 import { BERITA } from "@/lib/orari-data";
 import { SectionHeading } from "./section-heading";
 import { ScrollReveal } from "./scroll-reveal";
+import { Portal } from "./portal";
 
 export function Berita() {
-  return (
-    <section id="berita" className="py-20 sm:py-24 bg-muted/40 scroll-mt-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          eyebrow="Informasi Terkini"
-          title="Berita & Kegiatan"
-          description="Ikuti kabar terbaru seputar kegiatan dan informasi ORARI Lokal Majene."
-        />
+  const latest = BERITA.slice(0, 3);
 
-        {/* Grid berita */}
-        <div className="mt-14 grid md:grid-cols-3 gap-6">
-          {BERITA.map((item, idx) => (
-            <ScrollReveal key={item.title} variant="up" delay={idx * 100}>
-              <article className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white border border-border shadow-sm hover:shadow-xl transition-all duration-300">
-                {/* Foto berita */}
-                <div className="relative overflow-hidden aspect-[16/10]">
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  {/* Tanggal badge */}
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-xs font-medium text-[#003366] shadow">
-                    <Calendar size={12} className="text-[#B30000]" />
-                    {item.date}
+  return (
+    <section
+      id="berita"
+      className="scroll-mt-20 bg-slate-50 py-14 sm:py-16 lg:py-20"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)] lg:items-start lg:gap-12">
+          {/* ==================================================
+              KIRI — BERITA TERKINI
+              ================================================== */}
+          <div className="min-w-0">
+            <SectionHeading
+              eyebrow="Informasi Terkini"
+              title="Berita Terkini"
+              description="Ikuti kabar terbaru seputar kegiatan ORARI Lokal Majene."
+              align="left"
+              className="max-w-xl"
+            />
+
+            <div className="mt-8 space-y-5">
+              {latest.map((item, idx) => (
+                <ScrollReveal key={`${item.title}-${idx}`} variant="up" delay={idx * 80}>
+                  <article className="group grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg sm:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.1fr)]">
+                    <div className="relative min-h-[220px] overflow-hidden sm:min-h-[250px]">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 38vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col justify-center p-5 sm:p-6">
+                      <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                        <Calendar size={13} className="text-[#B30000]" />
+                        <span>{item.date}</span>
+                      </div>
+
+                      <h3 className="mt-3 font-heading text-xl font-bold leading-snug text-[#003366] transition-colors group-hover:text-[#B30000] sm:text-2xl">
+                        {item.title}
+                      </h3>
+
+                      <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+                        {item.excerpt}
+                      </p>
+
+                      <a
+                        href="/berita/hut-orari-58"
+                        className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-semibold text-[#003366] transition-colors hover:text-[#B30000]"
+                      >
+                        Baca Selengkapnya
+                        <ArrowRight
+                          size={16}
+                          className="transition-transform group-hover:translate-x-1"
+                        />
+                      </a>
+                    </div>
+                  </article>
+                </ScrollReveal>
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <a
+                href="#berita"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[#003366] transition-colors hover:text-[#B30000]"
+              >
+                Lihat semua berita
+                <ArrowRight size={15} />
+              </a>
+            </div>
+          </div>
+
+          {/* ==================================================
+              KANAN — BANNER/PENGUMUMAN + PORTAL
+              ================================================== */}
+          <aside className="min-w-0 lg:pt-[2px]">
+            <ScrollReveal variant="right">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#B30000]">
+                      Pengumuman
+                    </p>
+                    <h3 className="mt-0.5 font-heading text-lg font-bold text-[#003366]">
+                      Hari Jadi Majene 481
+                    </h3>
                   </div>
                 </div>
 
-                {/* Konten berita */}
-                <div className="flex flex-1 flex-col p-5">
-                  <h3 className="font-heading font-semibold text-[#003366] text-lg leading-snug line-clamp-2 group-hover:text-[#B30000] transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed line-clamp-3 flex-1">
-                    {item.excerpt}
-                  </p>
-                  {/* Tombol baca selengkapnya */}
-                  <a
-                    href="/berita/hut-orari-58"
-                    className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#003366] hover:text-[#B30000] transition-colors"
-                  >
-                    Baca Selengkapnya
-                    <ArrowRight
-                      size={15}
-                      className="group-hover:translate-x-1 transition-transform"
-                    />
-                  </a>
+                <div className="relative bg-slate-100">
+                  <Image
+                    src="/images/banner-hjm481.png"
+                    alt="Banner Hari Jadi Majene ke-481 tahun 2026 dari ORARI Lokal Majene"
+                    width={1024}
+                    height={1536}
+                    sizes="(max-width: 1024px) 100vw, 25vw"
+                    className="h-auto w-full object-contain"
+                  />
                 </div>
-              </article>
+              </div>
             </ScrollReveal>
-          ))}
+
+            <ScrollReveal variant="right" delay={100} className="mt-7">
+              <Portal />
+            </ScrollReveal>
+          </aside>
         </div>
       </div>
     </section>
