@@ -35,7 +35,11 @@ export function Berita() {
 
             <div className="mt-8 space-y-5">
               {latest.map((item, idx) => (
-                <ScrollReveal key={`${item.title}-${idx}`} variant="up" delay={idx * 80}>
+                <ScrollReveal
+                  key={`${item.title}-${idx}`}
+                  variant="up"
+                  delay={idx * 80}
+                >
                   <article className="group grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg sm:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.1fr)]">
                     <div className="relative min-h-[220px] overflow-hidden sm:min-h-[250px]">
                       <Image
@@ -112,7 +116,7 @@ export function Berita() {
                     width={1024}
                     height={1536}
                     sizes="(max-width: 1024px) 100vw, 25vw"
-                    className="h-auto w-full object-contain"
+                    className="h-auto max-h-[240px] w-full object-contain sm:max-h-[320px] lg:max-h-none"
                   />
                 </div>
               </div>

@@ -39,7 +39,13 @@ export const metadata: Metadata = {
   authors: [{ name: "ORARI Lokal Majene" }],
   creator: "ORARI Lokal Majene",
 
-  metadataBase: new URL("https://website-orari-lokal-majene.vercel.app"),
+  // Alamat website yang sekarang
+  metadataBase: new URL("https://orarilokalmajene.vercel.app"),
+
+  // Verifikasi Google Search Console
+  verification: {
+    google: "q7PCd_Kb-tF2g36tSAzSmb4fIxzuVM-w3-yjPuIAkmE",
+  },
 
   openGraph: {
     title: "ORARI Lokal Majene — Organisasi Amatir Radio Indonesia",
@@ -48,6 +54,7 @@ export const metadata: Metadata = {
     siteName: "ORARI Lokal Majene",
     locale: "id_ID",
     type: "website",
+    url: "https://orarilokalmajene.vercel.app",
   },
 
   twitter: {

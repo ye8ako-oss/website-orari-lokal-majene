@@ -166,7 +166,7 @@ export function Kontak() {
               FOTO KETUA
               ================================================== */}
           <ScrollReveal variant="right">
-            <div className="relative h-full overflow-hidden rounded-2xl bg-[#001f3f]">
+            <div className="relative h-[420px] overflow-hidden rounded-2xl bg-[#001f3f] lg:h-full">
               <Image
                 src="/images/foto-ketua.png"
                 alt="Ketua ORARI Lokal Majene"
@@ -182,7 +182,7 @@ export function Kontak() {
                   Ketua
                 </p>
                 <h3 className="mt-1 font-heading text-2xl font-bold text-white">
-                  ABD. MUNAJAT, SE.,MM
+                  ABDUL MUNAJAT, SE.,MM
                 </h3>
                 <p className="mt-1 text-sm font-medium text-white/80">YG8GOR</p>
                 <p className="mt-1 text-sm text-white/75">ORARI Lokal Majene</p>
