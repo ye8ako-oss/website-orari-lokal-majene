@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import type { Metadata } from "next";
 
 type Berita = {
   id: number;
@@ -20,9 +21,13 @@ type PageProps = {
   }>;
 };
 
-export default async function BeritaDetail({ params }: PageProps) {
-  const { slug } = await params;
+const BASE_URL = "https://orarilokalmajene.vercel.app";
 
+/* =========================================================
+   AMBIL DATA BERITA
+========================================================= */
+
+async function getBerita(slug: string) {
   const { data: berita, error } = await supabase
     .from("berita")
     .select("*")
@@ -31,6 +36,97 @@ export default async function BeritaDetail({ params }: PageProps) {
     .single<Berita>();
 
   if (error || !berita) {
+    return null;
+  }
+
+  return berita;
+}
+
+/* =========================================================
+   SEO SETIAP BERITA
+========================================================= */
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+
+  const berita = await getBerita(slug);
+
+  if (!berita) {
+    return {
+      title: "Berita Tidak Ditemukan",
+      description: "Berita ORARI Lokal Majene tidak ditemukan.",
+    };
+  }
+
+  const description = berita.isi.replace(/\s+/g, " ").trim().slice(0, 160);
+
+  const url = `${BASE_URL}/berita/${berita.slug}`;
+
+  return {
+    title: berita.judul,
+
+    description,
+
+    alternates: {
+      canonical: url,
+    },
+
+    openGraph: {
+      title: berita.judul,
+
+      description,
+
+      url,
+
+      siteName: "ORARI Lokal Majene",
+
+      locale: "id_ID",
+
+      type: "article",
+
+      publishedTime: berita.created_at,
+
+      authors: ["ORARI Lokal Majene"],
+
+      images: berita.gambar
+        ? [
+            {
+              url: berita.gambar,
+              alt: berita.judul,
+            },
+          ]
+        : undefined,
+    },
+
+    twitter: {
+      card: "summary_large_image",
+
+      title: berita.judul,
+
+      description,
+
+      images: berita.gambar ? [berita.gambar] : undefined,
+    },
+
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
+
+/* =========================================================
+   HALAMAN DETAIL BERITA
+========================================================= */
+
+export default async function BeritaDetail({ params }: PageProps) {
+  const { slug } = await params;
+
+  const berita = await getBerita(slug);
+
+  if (!berita) {
     notFound();
   }
 
@@ -45,6 +141,7 @@ export default async function BeritaDetail({ params }: PageProps) {
       {/* =====================================================
           HEADER ARTIKEL
       ===================================================== */}
+
       <section className="bg-[#003366] px-4 py-8 text-white sm:px-6 sm:py-10">
         <div className="mx-auto max-w-5xl">
           <Link
@@ -71,8 +168,10 @@ export default async function BeritaDetail({ params }: PageProps) {
       {/* =====================================================
           ARTIKEL
       ===================================================== */}
+
       <article className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
         {/* FOTO UTAMA */}
+
         {berita.gambar && (
           <figure>
             <div className="relative overflow-hidden rounded-xl bg-gray-100 shadow-sm sm:rounded-2xl">
@@ -95,6 +194,7 @@ export default async function BeritaDetail({ params }: PageProps) {
         {/* =====================================================
             ISI BERITA
         ===================================================== */}
+
         <div className="mx-auto mt-8 max-w-3xl sm:mt-10">
           <div className="text-[17px] leading-8 text-gray-700 sm:text-lg sm:leading-8">
             {berita.isi.split(/\r?\n/).map((paragraf, index) => {
@@ -114,8 +214,9 @@ export default async function BeritaDetail({ params }: PageProps) {
         </div>
 
         {/* =====================================================
-            PEMBATAS + KEMBALI
+            KEMBALI
         ===================================================== */}
+
         <div className="mx-auto mt-12 max-w-3xl border-t border-gray-200 pt-6 sm:mt-16">
           <Link
             href="/"
