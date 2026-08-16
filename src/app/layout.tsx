@@ -17,6 +17,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://orarilokalmajene.vercel.app"),
+
   title: {
     default: "ORARI Lokal Majene",
     template: "%s | ORARI Lokal Majene",
@@ -36,37 +38,61 @@ export const metadata: Metadata = {
     "YH8FB",
   ],
 
-  authors: [{ name: "ORARI Lokal Majene" }],
+  authors: [
+    {
+      name: "ORARI Lokal Majene",
+    },
+  ],
+
   creator: "ORARI Lokal Majene",
 
-  // Alamat website yang sekarang
-  metadataBase: new URL("https://orarilokalmajene.vercel.app"),
+  publisher: "ORARI Lokal Majene",
 
-  // Verifikasi Google Search Console
+  category: "organization",
+
+  alternates: {
+    canonical: "https://orarilokalmajene.vercel.app",
+  },
+
   verification: {
     google: "q7PCd_Kb-tF2g36tSAzSmb4fIxzuVM-w3-yjPuIAkmE",
   },
 
   openGraph: {
     title: "ORARI Lokal Majene — Organisasi Amatir Radio Indonesia",
+
     description:
-      "Media informasi resmi ORARI Lokal Majene. Profil organisasi, berita, layanan keanggotaan, CORE, dan dokumen.",
+      "Media informasi resmi ORARI Lokal Majene. Profil organisasi, berita kegiatan, layanan keanggotaan, CORE, dan dokumen.",
+
     siteName: "ORARI Lokal Majene",
+
     locale: "id_ID",
+
     type: "website",
+
     url: "https://orarilokalmajene.vercel.app",
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "ORARI Lokal Majene",
+
+    title: "ORARI Lokal Majene — Organisasi Amatir Radio Indonesia",
+
     description:
-      "Website resmi Organisasi Amatir Radio Indonesia Lokal Majene, Sulawesi Barat.",
+      "Website resmi Organisasi Amatir Radio Indonesia Lokal Majene, Kabupaten Majene, Sulawesi Barat.",
   },
 
   robots: {
     index: true,
     follow: true,
+
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 

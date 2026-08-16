@@ -1,18 +1,42 @@
 /* ============================================================
    BERANDA — BERITA + BANNER/PENGUMUMAN + PORTAL
    ------------------------------------------------------------
-   Berita berada di sisi kiri. Banner/pengumuman dan portal
-   berada di sisi kanan agar beranda tetap ringkas.
+   Berita diambil langsung dari Supabase.
+   Banner/pengumuman dan portal tetap berada di sisi kanan.
    ============================================================ */
+
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
-import { BERITA } from "@/lib/orari-data";
+import { supabase } from "@/lib/supabase";
 import { SectionHeading } from "./section-heading";
 import { ScrollReveal } from "./scroll-reveal";
 import { Portal } from "./portal";
 
-export function Berita() {
-  const latest = BERITA.slice(0, 3);
+type BeritaData = {
+  id: number;
+  created_at: string;
+  judul: string;
+  slug: string;
+  isi: string;
+  gambar: string | null;
+  publish: boolean;
+};
+
+export async function Berita() {
+  const { data: latest, error } = await supabase
+    .from("berita")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  console.log("DATA BERITA HOMEPAGE:", latest);
+  console.log("ERROR BERITA HOMEPAGE:", error);
+  if (error) {
+    console.error("Gagal mengambil berita:", error);
+  }
+
+  const beritaTerbaru = latest ?? [];
 
   return (
     <section
@@ -34,61 +58,87 @@ export function Berita() {
             />
 
             <div className="mt-8 space-y-5">
-              {latest.map((item, idx) => (
-                <ScrollReveal
-                  key={`${item.title}-${idx}`}
-                  variant="up"
-                  delay={idx * 80}
-                >
-                  <article className="group grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg sm:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.1fr)]">
-                    <div className="relative min-h-[220px] overflow-hidden sm:min-h-[250px]">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        sizes="(max-width: 640px) 100vw, 38vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                      />
-                    </div>
+              {beritaTerbaru.length === 0 ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
+                  Belum ada berita yang diterbitkan.
+                </div>
+              ) : (
+                beritaTerbaru.map((item, idx) => {
+                  const tanggal = new Date(item.created_at).toLocaleDateString(
+                    "id-ID",
+                    {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    },
+                  );
 
-                    <div className="flex flex-col justify-center p-5 sm:p-6">
-                      <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                        <Calendar size={13} className="text-[#B30000]" />
-                        <span>{item.date}</span>
-                      </div>
+                  const ringkasan =
+                    item.isi.length > 160
+                      ? `${item.isi.substring(0, 160)}...`
+                      : item.isi;
 
-                      <h3 className="mt-3 font-heading text-xl font-bold leading-snug text-[#003366] transition-colors group-hover:text-[#B30000] sm:text-2xl">
-                        {item.title}
-                      </h3>
+                  return (
+                    <ScrollReveal key={item.id} variant="up" delay={idx * 80}>
+                      <article className="group grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg sm:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.1fr)]">
+                        {/* FOTO */}
+                        <div className="relative min-h-[220px] overflow-hidden bg-slate-100 sm:min-h-[250px]">
+                          {item.gambar ? (
+                            <Image
+                              src={item.gambar}
+                              alt={item.judul}
+                              fill
+                              sizes="(max-width: 640px) 100vw, 38vw"
+                              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            />
+                          ) : (
+                            <div className="flex h-full min-h-[220px] items-center justify-center text-sm text-slate-400">
+                              Tidak ada foto
+                            </div>
+                          )}
+                        </div>
 
-                      <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
-                        {item.excerpt}
-                      </p>
+                        {/* INFORMASI BERITA */}
+                        <div className="flex flex-col justify-center p-5 sm:p-6">
+                          <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                            <Calendar size={13} className="text-[#B30000]" />
+                            <span>{tanggal}</span>
+                          </div>
 
-                      <a
-                        href="/berita/hut-orari-58"
-                        className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-semibold text-[#003366] transition-colors hover:text-[#B30000]"
-                      >
-                        Baca Selengkapnya
-                        <ArrowRight
-                          size={16}
-                          className="transition-transform group-hover:translate-x-1"
-                        />
-                      </a>
-                    </div>
-                  </article>
-                </ScrollReveal>
-              ))}
+                          <h3 className="mt-3 font-heading text-xl font-bold leading-snug text-[#003366] transition-colors group-hover:text-[#B30000] sm:text-2xl">
+                            {item.judul}
+                          </h3>
+
+                          <p className="mt-3 line-clamp-3 whitespace-pre-line text-sm leading-6 text-slate-600">
+                            {ringkasan}
+                          </p>
+
+                          <Link
+                            href={`/berita/${item.slug}`}
+                            className="mt-5 inline-flex w-fit items-center gap-2 text-sm font-semibold text-[#003366] transition-colors hover:text-[#B30000]"
+                          >
+                            Baca Selengkapnya
+                            <ArrowRight
+                              size={16}
+                              className="transition-transform group-hover:translate-x-1"
+                            />
+                          </Link>
+                        </div>
+                      </article>
+                    </ScrollReveal>
+                  );
+                })
+              )}
             </div>
 
             <div className="mt-6">
-              <a
+              <Link
                 href="#berita"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-[#003366] transition-colors hover:text-[#B30000]"
               >
                 Lihat semua berita
                 <ArrowRight size={15} />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -103,6 +153,7 @@ export function Berita() {
                     <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#B30000]">
                       Pengumuman
                     </p>
+
                     <h3 className="mt-0.5 font-heading text-lg font-bold text-[#003366]">
                       Hari Jadi Majene 481
                     </h3>

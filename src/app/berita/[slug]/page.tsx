@@ -1,95 +1,122 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
+import { notFound } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
-export default function BeritaDetail() {
+type Berita = {
+  id: number;
+  created_at: string;
+  judul: string;
+  slug: string;
+  isi: string;
+  gambar: string | null;
+  publish: boolean;
+};
+
+type PageProps = {
+  params: Promise<{
+    slug: string;
+  }>;
+};
+
+export default async function BeritaDetail({ params }: PageProps) {
+  const { slug } = await params;
+
+  const { data: berita, error } = await supabase
+    .from("berita")
+    .select("*")
+    .eq("slug", slug)
+    .eq("publish", true)
+    .single<Berita>();
+
+  if (error || !berita) {
+    notFound();
+  }
+
+  const tanggal = new Date(berita.created_at).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <main className="min-h-screen bg-white">
-      {/* Header sederhana */}
-      <section className="bg-[#003366] px-6 py-10 text-white">
+      {/* =====================================================
+          HEADER ARTIKEL
+      ===================================================== */}
+      <section className="bg-[#003366] px-4 py-8 text-white sm:px-6 sm:py-10">
         <div className="mx-auto max-w-5xl">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-white/80 transition-colors hover:text-white"
+            className="inline-flex items-center gap-2 text-sm font-medium text-white/80 transition hover:text-white"
           >
             <ArrowLeft size={16} />
             Kembali ke Beranda
           </Link>
 
-          <div className="mt-8">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm">
-              <Calendar size={15} />
-              11–12 Juli 2026
+          <div className="mt-8 sm:mt-10">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white/90 sm:text-sm">
+              <Calendar size={14} />
+              {tanggal}
             </div>
 
-            <h1 className="max-w-4xl font-heading text-3xl font-bold leading-tight md:text-5xl">
-              ORARI Lokal Majene Gelar Apel Siaga dan Perkemahan dalam
-              Memperingati HUT ke-58 ORARI
+            <h1 className="max-w-4xl font-heading text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
+              {berita.judul}
             </h1>
-
-            <p className="mt-4 text-white/75">
-              Desyta Barane Beach, Kelurahan Baurung, Kabupaten Majene
-            </p>
           </div>
         </div>
       </section>
 
-      {/* Isi berita */}
-      <article className="mx-auto max-w-5xl px-6 py-10">
-        {/* Foto utama */}
-        <div className="relative overflow-hidden rounded-2xl">
-          <Image
-            src="/images/hut-orari.jpeg"
-            alt="Kegiatan HUT ke-58 ORARI Lokal Majene"
-            width={1600}
-            height={1000}
-            className="h-auto w-full object-cover"
-            priority
-          />
+      {/* =====================================================
+          ARTIKEL
+      ===================================================== */}
+      <article className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+        {/* FOTO UTAMA */}
+        {berita.gambar && (
+          <figure>
+            <div className="relative overflow-hidden rounded-xl bg-gray-100 shadow-sm sm:rounded-2xl">
+              <Image
+                src={berita.gambar}
+                alt={berita.judul}
+                width={1600}
+                height={1000}
+                className="h-auto max-h-[650px] w-full object-cover"
+                priority
+              />
+            </div>
+
+            <figcaption className="mt-3 text-center text-xs text-gray-400 sm:text-sm">
+              {berita.judul}
+            </figcaption>
+          </figure>
+        )}
+
+        {/* =====================================================
+            ISI BERITA
+        ===================================================== */}
+        <div className="mx-auto mt-8 max-w-3xl sm:mt-10">
+          <div className="text-[17px] leading-8 text-gray-700 sm:text-lg sm:leading-8">
+            {berita.isi.split(/\r?\n/).map((paragraf, index) => {
+              const teks = paragraf.trim();
+
+              if (!teks) {
+                return <div key={index} className="h-3" />;
+              }
+
+              return (
+                <p key={index} className="mb-5 last:mb-0">
+                  {teks}
+                </p>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Caption */}
-        <p className="mt-3 text-center text-sm text-gray-500">
-          Kegiatan ORARI Lokal Majene dalam rangka memperingati HUT ke-58 ORARI,
-          11–12 Juli 2026.
-        </p>
-
-        {/* Teks berita */}
-        <div className="prose prose-lg mt-10 max-w-none text-gray-700">
-          <p>
-            Dalam rangka memperingati Hari Ulang Tahun ORARI ke-58 tahun 2026,
-            ORARI Lokal Majene melaksanakan apel siaga bersama RAPI, Pramuka,
-            serta Desa/Kelurahan Tangguh Bencana (DESTANA).
-          </p>
-
-          <p>
-            Kegiatan dilaksanakan selama dua hari, Sabtu–Minggu, 11–12 Juli
-            2026, bertempat di Desyta Barane Beach, Kelurahan Baurung, Kabupaten
-            Majene.
-          </p>
-
-          <p>
-            Selain apel siaga, kegiatan juga dirangkaikan dengan perkemahan
-            selama satu malam serta sosialisasi pra-JOTA kepada kakak-kakak
-            Pramuka yang nantinya akan mengikuti kegiatan Jambore On The Air
-            (JOTA).
-          </p>
-
-          <p>
-            ORARI Lokal Majene juga melaksanakan sosialisasi CORE (Communication
-            In Rescue & Emergency) kepada Desa/Kelurahan Tangguh Bencana
-            (DESTANA) dari Kelurahan Baru dan Kelurahan Rangas.
-          </p>
-
-          <p>
-            Kegiatan ini menjadi bagian dari peran ORARI Lokal Majene dalam
-            membangun kesiapsiagaan komunikasi serta memperkuat sinergi dengan
-            unsur masyarakat dan organisasi terkait.
-          </p>
-        </div>
-
-        {/* Kembali */}
-        <div className="mt-12 border-t border-gray-200 pt-6">
+        {/* =====================================================
+            PEMBATAS + KEMBALI
+        ===================================================== */}
+        <div className="mx-auto mt-12 max-w-3xl border-t border-gray-200 pt-6 sm:mt-16">
           <Link
             href="/"
             className="inline-flex items-center gap-2 rounded-full bg-[#003366] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#B30000]"
