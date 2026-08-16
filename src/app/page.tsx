@@ -6,6 +6,8 @@ import { Kontak } from "@/components/orari/kontak";
 import { Footer } from "@/components/orari/footer";
 import { BackToTop } from "@/components/orari/back-to-top";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <div className="relative min-h-screen flex flex-col bg-white">
