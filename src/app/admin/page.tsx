@@ -15,6 +15,25 @@ type Berita = {
 };
 
 export default function AdminPage() {
+  function getRingkasan(isi: string) {
+    const teksBersih = isi
+      .replace(/<img\b[^>]*>/gi, "")
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<\/p>/gi, " ")
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return teksBersih.length > 180
+      ? `${teksBersih.substring(0, 180).trim()}...`
+      : teksBersih;
+  }
   const router = useRouter();
 
   const [userEmail, setUserEmail] = useState("");
@@ -307,7 +326,7 @@ export default function AdminPage() {
                         </p>
 
                         <p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-600">
-                          {item.isi}
+                          {getRingkasan(item.isi)}
                         </p>
                       </div>
 

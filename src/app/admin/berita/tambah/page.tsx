@@ -2,7 +2,9 @@
 
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import NewsEditor from "@/components/orari/news-editor";
 
 export default function TambahBeritaPage() {
   const router = useRouter();
@@ -43,7 +45,7 @@ export default function TambahBeritaPage() {
     setGambar("");
   }
 
-  async function uploadFoto(): Promise<string | null> {
+  async function uploadFotoUtama(): Promise<string | null> {
     if (!fileGambar) {
       return null;
     }
@@ -90,8 +92,10 @@ export default function TambahBeritaPage() {
         });
 
       if (uploadError) {
-        console.error("ERROR UPLOAD FOTO:", uploadError);
+        console.error("ERROR UPLOAD FOTO UTAMA:", uploadError);
+
         setError("Foto gagal diunggah. Periksa policy Storage Supabase.");
+
         return null;
       }
 
@@ -99,6 +103,7 @@ export default function TambahBeritaPage() {
 
       if (!data.publicUrl) {
         setError("URL foto tidak berhasil dibuat.");
+
         return null;
       }
 
@@ -106,64 +111,105 @@ export default function TambahBeritaPage() {
 
       return data.publicUrl;
     } catch (err) {
-      console.error("ERROR UPLOAD FOTO:", err);
+      console.error("ERROR UPLOAD FOTO UTAMA:", err);
+
       setError("Terjadi kesalahan saat mengunggah foto.");
+
       return null;
     } finally {
       setUploading(false);
     }
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    void simpanBerita();
+  }
 
+  async function simpanBerita() {
     setLoading(true);
     setError("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      router.replace("/admin/login");
-      return;
-    }
+      if (!user) {
+        router.replace("/admin/login");
+        return;
+      }
 
-    let urlGambar = gambar;
-
-    if (fileGambar) {
-      const hasilUpload = await uploadFoto();
-
-      if (!hasilUpload) {
+      if (!judul.trim()) {
+        setError("Judul berita wajib diisi.");
         setLoading(false);
         return;
       }
 
-      urlGambar = hasilUpload;
-    }
+      if (!slug.trim()) {
+        setError("Slug berita wajib diisi.");
+        setLoading(false);
+        return;
+      }
 
-    const { error: insertError } = await supabase.from("berita").insert({
-      judul,
-      slug,
-      isi,
-      gambar: urlGambar || null,
-      publish,
-    });
+      /*
+       * NewsEditor sudah mengirim HTML terbaru melalui onChange.
+       */
+      const isiHTML = isi.trim();
 
-    if (insertError) {
-      console.error("ERROR SIMPAN BERITA:", insertError);
-      setError("Berita gagal disimpan. Silakan coba lagi.");
+      if (!isiHTML || isiHTML === "<p></p>" || isiHTML === "<p><br></p>") {
+        setError("Isi berita wajib diisi.");
+        setLoading(false);
+        return;
+      }
+
+      let urlGambar = gambar;
+
+      if (fileGambar) {
+        const hasilUpload = await uploadFotoUtama();
+
+        if (!hasilUpload) {
+          setLoading(false);
+          return;
+        }
+
+        urlGambar = hasilUpload;
+      }
+
+      const publishedAt = publish ? new Date().toISOString() : null;
+
+      const { error: insertError } = await supabase.from("berita").insert({
+        judul: judul.trim(),
+        slug: slug.trim(),
+        isi: isiHTML,
+        gambar: urlGambar || null,
+        publish,
+        published_at: publishedAt,
+      });
+
+      if (insertError) {
+        console.error("ERROR SIMPAN BERITA:", insertError);
+
+        setError("Berita gagal disimpan. Silakan coba lagi.");
+
+        setLoading(false);
+        return;
+      }
+
+      router.push("/admin");
+      router.refresh();
+    } catch (err) {
+      console.error("ERROR SIMPAN BERITA:", err);
+
+      setError("Terjadi kesalahan saat menyimpan berita.");
+
       setLoading(false);
-      return;
     }
-
-    router.push("/admin");
-    router.refresh();
   }
 
   return (
     <main className="min-h-screen bg-gray-100 px-4 py-8 sm:px-6">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-5xl">
         <div className="mb-6">
           <button
             type="button"
@@ -185,7 +231,8 @@ export default function TambahBeritaPage() {
             </h1>
 
             <p className="mt-2 text-sm text-gray-500">
-              Buat berita baru untuk website ORARI Lokal Majene.
+              Buat berita dengan editor profesional untuk teks, foto pendukung,
+              tautan, daftar, dan formatting lainnya.
             </p>
           </div>
 
@@ -205,7 +252,8 @@ export default function TambahBeritaPage() {
                 value={judul}
                 onChange={(event) => handleJudulChange(event.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#001f3f] focus:ring-2 focus:ring-[#001f3f]/20"
+                disabled={loading}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#001f3f] focus:ring-2 focus:ring-[#001f3f]/20 disabled:bg-gray-100"
                 placeholder="Masukkan judul berita"
               />
             </div>
@@ -225,42 +273,33 @@ export default function TambahBeritaPage() {
                 value={slug}
                 onChange={(event) => setSlug(event.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#001f3f] focus:ring-2 focus:ring-[#001f3f]/20"
+                disabled={loading}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#001f3f] focus:ring-2 focus:ring-[#001f3f]/20 disabled:bg-gray-100"
                 placeholder="judul-berita"
               />
 
               <p className="mt-2 text-xs text-gray-400">
-                Slug digunakan sebagai alamat berita.
+                Slug digunakan sebagai alamat berita. Judul dan slug boleh
+                berbeda.
               </p>
             </div>
 
-            {/* ISI */}
+            {/* EDITOR BERITA */}
             <div>
-              <label
-                htmlFor="isi"
-                className="mb-2 block text-sm font-semibold text-gray-700"
-              >
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Isi Berita
               </label>
 
-              <textarea
-                id="isi"
-                value={isi}
-                onChange={(event) => setIsi(event.target.value)}
-                required
-                rows={12}
-                className="w-full resize-y rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#001f3f] focus:ring-2 focus:ring-[#001f3f]/20"
-                placeholder="Tulis isi berita di sini..."
-              />
+              <NewsEditor value={isi} onChange={setIsi} disabled={loading} />
             </div>
 
-            {/* FOTO */}
+            {/* FOTO UTAMA */}
             <div>
               <label
                 htmlFor="gambar"
                 className="mb-2 block text-sm font-semibold text-gray-700"
               >
-                Foto Berita
+                Foto Utama Berita
               </label>
 
               <input
@@ -279,24 +318,25 @@ export default function TambahBeritaPage() {
               )}
 
               <p className="mt-2 text-xs text-gray-400">
-                Format: JPG, PNG, atau WebP. Maksimal 5 MB.
+                Foto utama tampil sebagai gambar utama berita. Format JPG, PNG,
+                atau WebP. Maksimal 5 MB.
               </p>
 
               {uploading && (
                 <div className="mt-3 rounded-lg bg-blue-50 p-3 text-sm font-medium text-blue-700">
-                  Mengunggah foto...
+                  Mengunggah foto utama...
                 </div>
               )}
 
               {gambar && !uploading && (
                 <div className="mt-4">
                   <p className="mb-2 text-sm font-semibold text-gray-700">
-                    Foto berhasil diunggah
+                    Foto utama berhasil diunggah
                   </p>
 
                   <img
                     src={gambar}
-                    alt="Preview foto berita"
+                    alt="Preview foto utama berita"
                     className="max-h-80 w-full rounded-xl object-cover"
                   />
                 </div>
@@ -310,6 +350,7 @@ export default function TambahBeritaPage() {
                   type="checkbox"
                   checked={publish}
                   onChange={(event) => setPublish(event.target.checked)}
+                  disabled={loading}
                   className="h-4 w-4"
                 />
 
@@ -319,7 +360,8 @@ export default function TambahBeritaPage() {
               </label>
 
               <p className="mt-2 text-xs text-gray-400">
-                Jika dicentang, berita akan langsung berstatus Terbit.
+                Jika dicentang, berita akan langsung berstatus Terbit. Waktu
+                publikasi dicatat otomatis.
               </p>
             </div>
 

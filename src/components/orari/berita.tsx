@@ -73,10 +73,24 @@ export async function Berita() {
                     },
                   );
 
+                  const teksBersih = item.isi
+                    .replace(/<img\b[^>]*>/gi, "")
+                    .replace(/<br\s*\/?>/gi, " ")
+                    .replace(/<\/p>/gi, " ")
+                    .replace(/<[^>]*>/g, "")
+                    .replace(/&nbsp;/gi, " ")
+                    .replace(/&amp;/gi, "&")
+                    .replace(/&lt;/gi, "<")
+                    .replace(/&gt;/gi, ">")
+                    .replace(/&quot;/gi, '"')
+                    .replace(/&#39;/gi, "'")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
                   const ringkasan =
-                    item.isi.length > 160
-                      ? `${item.isi.substring(0, 160)}...`
-                      : item.isi;
+                    teksBersih.length > 160
+                      ? `${teksBersih.substring(0, 160).trim()}...`
+                      : teksBersih;
 
                   return (
                     <ScrollReveal key={item.id} variant="up" delay={idx * 80}>
