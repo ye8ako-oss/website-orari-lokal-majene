@@ -40,7 +40,9 @@ export function Profil() {
                 <p className="text-white font-semibold text-lg drop-shadow">
                   Kegiatan Komunikasi Radio Amatir
                 </p>
-                <p className="text-white/80 text-sm">Kabupaten Majene, Sulawesi Barat</p>
+                <p className="text-white/80 text-sm">
+                  Kabupaten Majene, Sulawesi Barat
+                </p>
               </div>
             </div>
             {/* Aksen merah di pojok */}
@@ -54,7 +56,9 @@ export function Profil() {
               <h3 className="font-heading font-semibold text-xl text-[#003366] mb-2">
                 Tentang Organisasi
               </h3>
-              <p className="text-muted-foreground leading-relaxed">{PROFIL.tentang}</p>
+              <p className="text-muted-foreground leading-relaxed">
+                {PROFIL.tentang}
+              </p>
             </div>
 
             {/* Sejarah */}
@@ -62,7 +66,9 @@ export function Profil() {
               <h3 className="font-heading font-semibold text-lg text-[#003366] mb-2">
                 Sejarah Singkat
               </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{PROFIL.sejarah}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {PROFIL.sejarah}
+              </p>
             </div>
 
             {/* Visi & Misi */}
@@ -73,9 +79,13 @@ export function Profil() {
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003366] text-white">
                     <Eye size={18} />
                   </span>
-                  <h4 className="font-heading font-semibold text-[#003366]">Visi</h4>
+                  <h4 className="font-heading font-semibold text-[#003366]">
+                    Visi
+                  </h4>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">{PROFIL.visi}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {PROFIL.visi}
+                </p>
               </div>
               {/* Misi */}
               <div className="rounded-xl border border-[#003366]/15 bg-[#003366]/[0.03] p-5">
@@ -83,7 +93,9 @@ export function Profil() {
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003366] text-white">
                     <Target size={18} />
                   </span>
-                  <h4 className="font-heading font-semibold text-[#003366]">Misi</h4>
+                  <h4 className="font-heading font-semibold text-[#003366]">
+                    Misi
+                  </h4>
                 </div>
                 <ul className="space-y-1.5 text-sm text-muted-foreground">
                   {PROFIL.misi.map((m, i) => (
@@ -102,12 +114,16 @@ export function Profil() {
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#B30000] text-white">
                   <Flag size={18} />
                 </span>
-                <h4 className="font-heading font-semibold text-[#003366]">Tujuan Organisasi</h4>
+                <h4 className="font-heading font-semibold text-[#003366]">
+                  Tujuan Organisasi
+                </h4>
               </div>
               <ul className="grid sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
                 {PROFIL.tujuan.map((t, i) => (
                   <li key={i} className="flex gap-2">
-                    <span className="text-[#B30000] font-bold mt-0.5 shrink-0">{i + 1}.</span>
+                    <span className="text-[#B30000] font-bold mt-0.5 shrink-0">
+                      {i + 1}.
+                    </span>
                     <span>{t}</span>
                   </li>
                 ))}
@@ -120,7 +136,9 @@ export function Profil() {
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003366] text-white">
                   <Heart size={18} />
                 </span>
-                <h4 className="font-heading font-semibold text-[#003366]">Nilai Organisasi</h4>
+                <h4 className="font-heading font-semibold text-[#003366]">
+                  Nilai Organisasi
+                </h4>
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 {PROFIL.nilai.map((n, i) => (
@@ -128,8 +146,12 @@ export function Profil() {
                     key={i}
                     className="rounded-lg border border-border p-3 hover:border-[#003366]/40 hover:shadow-sm transition-all"
                   >
-                    <p className="font-semibold text-[#003366] text-sm">{n.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{n.desc}</p>
+                    <p className="font-semibold text-[#003366] text-sm">
+                      {n.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {n.desc}
+                    </p>
                   </div>
                 ))}
               </div>

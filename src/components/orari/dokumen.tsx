@@ -5,7 +5,7 @@
    Surat Edaran, Formulir, Panduan, dan dokumen lainnya.
    Setiap item memakai ikon PDF.
    ============================================================ */
-import { FileText, Download } from "lucide-react";
+import { FileText, Eye } from "lucide-react";
 import { DOKUMEN } from "@/lib/orari-data";
 import { getIcon } from "./icon-map";
 import { SectionHeading } from "./section-heading";
@@ -28,7 +28,9 @@ export function Dokumen() {
             return (
               <ScrollReveal key={item.title} variant="up" delay={idx * 60}>
                 <a
-                  href="#dokumen"
+                  href={item.url || "#dokumen"}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group flex h-full flex-col rounded-2xl border border-border bg-white p-5 hover:border-[#003366]/40 hover:shadow-lg transition-all duration-300"
                 >
                   {/* Header: ikon dokumen + badge PDF */}
@@ -52,8 +54,8 @@ export function Dokumen() {
 
                   {/* Tombol unduh */}
                   <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#003366] group-hover:text-[#B30000] transition-colors">
-                    <Download size={13} />
-                    Unduh Dokumen
+                    <Eye size={13} />
+                    Lihat Dokumen
                   </span>
                 </a>
               </ScrollReveal>

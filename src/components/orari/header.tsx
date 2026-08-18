@@ -17,12 +17,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { label: "Beranda", href: "#beranda" },
+  { label: "Beranda", href: "/" },
   { label: "Profil", href: "/profil" },
-  { label: "Berita", href: "#berita" },
-  { label: "Layanan", href: "#layanan" },
-  { label: "Dokumen", href: "#dokumen" },
-  { label: "Kontak", href: "#kontak" },
+  { label: "Berita", href: "/#berita" },
+  { label: "Layanan", href: "/layanan" },
+  { label: "Dokumen", href: "/dokumen" },
+  { label: "Kontak", href: "/#kontak" },
 ];
 
 export function Header() {
@@ -108,19 +108,32 @@ export function Header() {
      TENTUKAN MENU AKTIF
      ============================================================ */
   const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/" && activeSection === "beranda";
+    }
+
     if (href === "/profil") {
       return pathname === "/profil";
     }
 
-    if (pathname !== "/") {
-      return false;
+    if (href === "/layanan") {
+      return pathname === "/layanan";
     }
 
-    const sectionId = href.replace("#", "");
+    if (href === "/dokumen") {
+      return pathname === "/dokumen";
+    }
 
-    return activeSection === sectionId;
+    if (href === "#berita") {
+      return pathname === "/" && activeSection === "berita";
+    }
+
+    if (href === "#kontak") {
+      return pathname === "/" && activeSection === "kontak";
+    }
+
+    return false;
   };
-
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div
@@ -135,7 +148,7 @@ export function Header() {
               IDENTITAS
               ================================================== */}
           <Link
-            href="#beranda"
+            href="/"
             className="flex items-center gap-2.5"
             aria-label="ORARI Lokal Majene"
           >

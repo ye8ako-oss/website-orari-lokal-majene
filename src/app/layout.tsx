@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { Header } from "@/components/orari/header";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -106,6 +107,7 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${spaceGrotesk.variable} font-sans antialiased bg-background text-foreground`}
       >
+        <Header />
         {children}
         <Toaster />
       </body>

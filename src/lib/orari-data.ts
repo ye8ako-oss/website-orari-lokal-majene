@@ -231,42 +231,20 @@ export const DOKUMEN = [
   {
     icon: "FileText",
     title: "AD/ART ORARI",
-    desc: "Anggaran Dasar dan Rumah Tangga ORARI.",
+    desc: "Anggaran Dasar dan Anggaran Rumah Tangga Organisasi Amatir Radio Indonesia.",
+    url: "https://tlthxybcabesrvkkduuw.supabase.co/storage/v1/object/public/dokumen/ad-art-orari.pdf",
   },
   {
-    icon: "Handshake",
-    title: "MoU",
-    desc: "Nota Kesepahaman dengan mitra kerja.",
+    icon: "FileText",
+    title: "MoU Bupati – ORARI Lokal Majene",
+    desc: "Nota Kesepahaman antara Pemerintah Kabupaten Majene dan ORARI Lokal Majene.",
+    url: "https://tlthxybcabesrvkkduuw.supabase.co/storage/v1/object/public/dokumen/mou-bupati-orari-lokal-majene.pdf",
   },
   {
-    icon: "FileSignature",
-    title: "PKS",
-    desc: "Perjanjian Kerja Sama kelembagaan.",
-  },
-  {
-    icon: "Scale",
-    title: "Peraturan Organisasi",
-    desc: "Peraturan dan ketetapan organisasi.",
-  },
-  {
-    icon: "Mail",
-    title: "Surat Edaran",
-    desc: "Surat edaran pengurus kepada anggota.",
-  },
-  {
-    icon: "FileCheck",
-    title: "Formulir",
-    desc: "Formulir administrasi keanggotaan.",
-  },
-  {
-    icon: "BookOpen",
-    title: "Panduan",
-    desc: "Panduan operasional dan teknis radio.",
-  },
-  {
-    icon: "FolderArchive",
-    title: "Dokumen Lainnya",
-    desc: "Dokumen pendukung organisasi.",
+    icon: "FileText",
+    title: "Pedoman Penyelenggaraan CORE",
+    desc: "Pedoman penyelenggaraan CORE sebagai salah satu dokumen resmi ORARI.",
+    url: "https://tlthxybcabesrvkkduuw.supabase.co/storage/v1/object/public/dokumen/pedoman-penyelenggaraan-core.pdf",
   },
 ];
 
