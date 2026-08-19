@@ -1,11 +1,12 @@
 "use client";
 
 /* ============================================================
-   HEADER STICKY + SCROLL SPY
+   HEADER STICKY + SCROLL SPY + MOBILE MENU
    ------------------------------------------------------------
    - Logo ORARI + nama organisasi di kiri
    - Menu navigasi di kanan (desktop)
-   - Tombol hamburger untuk mobile
+   - Tombol MENU untuk mobile
+   - Menu mobile dapat dibuka/tutup
    - Tetap terlihat saat halaman digulir (fixed)
    - Latar berubah dari transparan ke putih saat scroll
    - Scroll spy: menu aktif menyesuaikan section yang terlihat
@@ -30,11 +31,10 @@ export function Header() {
 
   const [activeSection, setActiveSection] = useState("beranda");
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   /* ============================================================
      DETEKSI SCROLL
-     ------------------------------------------------------------
-     Mengubah tampilan header ketika halaman mulai digulir.
      ============================================================ */
   useEffect(() => {
     const handleScroll = () => {
@@ -52,18 +52,13 @@ export function Header() {
 
   /* ============================================================
      SCROLL SPY
-     ------------------------------------------------------------
-     Mendeteksi section yang sedang terlihat di layar.
      ============================================================ */
   useEffect(() => {
-    /* Jika sedang berada di halaman Profil,
-       menu Profil menjadi aktif. */
     if (pathname === "/profil") {
       setActiveSection("profil");
       return;
     }
 
-    /* Scroll spy hanya digunakan di halaman utama. */
     if (pathname !== "/") {
       return;
     }
@@ -105,6 +100,13 @@ export function Header() {
   }, [pathname]);
 
   /* ============================================================
+     TUTUP MENU MOBILE SAAT PINDAH HALAMAN
+     ============================================================ */
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  /* ============================================================
      TENTUKAN MENU AKTIF
      ============================================================ */
   const isActive = (href: string) => {
@@ -124,16 +126,17 @@ export function Header() {
       return pathname === "/dokumen";
     }
 
-    if (href === "#berita") {
+    if (href === "/#berita") {
       return pathname === "/" && activeSection === "berita";
     }
 
-    if (href === "#kontak") {
+    if (href === "/#kontak") {
       return pathname === "/" && activeSection === "kontak";
     }
 
     return false;
   };
+
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div
@@ -151,6 +154,7 @@ export function Header() {
             href="/"
             className="flex items-center gap-2.5"
             aria-label="ORARI Lokal Majene"
+            onClick={() => setMenuOpen(false)}
           >
             <Image
               src="/images/logo-orari-lokal-majene.png"
@@ -202,7 +206,6 @@ export function Header() {
                 >
                   {item.label}
 
-                  {/* GARIS MENU AKTIF */}
                   {active && (
                     <span
                       className={`absolute -bottom-[11px] left-0 right-0 mx-auto h-[2px] w-full rounded-full ${
@@ -216,22 +219,64 @@ export function Header() {
           </nav>
 
           {/* ==================================================
-              MOBILE MENU
+              MOBILE MENU BUTTON
               ================================================== */}
           <div className="flex items-center lg:hidden">
             <button
               type="button"
+              onClick={() => setMenuOpen((open) => !open)}
               className={`rounded-md border px-3 py-2 text-xs font-medium backdrop-blur-sm transition ${
                 scrolled
                   ? "border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200"
                   : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white"
               }`}
-              aria-label="Buka menu"
+              aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
+              aria-expanded={menuOpen}
             >
-              MENU
+              {menuOpen ? "TUTUP" : "MENU"}
             </button>
           </div>
         </div>
+
+        {/* ==================================================
+            MOBILE NAVIGATION
+            ================================================== */}
+        {menuOpen && (
+          <div
+            className={`border-t ${
+              scrolled
+                ? "border-slate-200/70 bg-white/98"
+                : "border-white/10 bg-[#00152d]/95"
+            }`}
+          >
+            <nav className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+              <div className="flex flex-col">
+                {navItems.map((item) => {
+                  const active = isActive(item.href);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={`border-b py-3 text-sm font-medium transition-colors last:border-b-0 ${
+                        scrolled
+                          ? active
+                            ? "border-slate-200 text-[#123b63]"
+                            : "border-slate-100 text-slate-600 hover:text-[#123b63]"
+                          : active
+                            ? "border-white/10 text-white"
+                            : "border-white/10 text-white/75 hover:text-white"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

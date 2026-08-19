@@ -1,17 +1,17 @@
 /* ============================================================
    BERANDA — BERITA + BANNER/PENGUMUMAN + PORTAL
    ------------------------------------------------------------
-   Berita diambil langsung dari Supabase.
-   Banner/pengumuman dan portal tetap berada di sisi kanan.
+   Berita dan banner diambil langsung dari Supabase.
+   Banner aktif berganti otomatis.
    ============================================================ */
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { SectionHeading } from "./section-heading";
 import { ScrollReveal } from "./scroll-reveal";
 import { Portal } from "./portal";
+import { BannerSlider } from "./banner-slider";
 
 type BeritaData = {
   id: number;
@@ -23,20 +23,57 @@ type BeritaData = {
   publish: boolean;
 };
 
+type BannerData = {
+  id: number;
+  judul: string;
+  gambar: string | null;
+  urutan: number | null;
+  aktif: boolean;
+};
+
 export async function Berita() {
-  const { data: latest, error } = await supabase
-    .from("berita")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(3);
+  const [
+    { data: latest, error: beritaError },
+    { data: bannerData, error: bannerError },
+  ] = await Promise.all([
+    supabase
+      .from("berita")
+      .select("*")
+      .order("created_at", {
+        ascending: false,
+      })
+      .limit(3),
+
+    supabase
+      .from("banner")
+      .select("id, judul, gambar, urutan, aktif")
+      .eq("aktif", true)
+      .order("urutan", {
+        ascending: true,
+      }),
+  ]);
 
   console.log("DATA BERITA HOMEPAGE:", latest);
-  console.log("ERROR BERITA HOMEPAGE:", error);
-  if (error) {
-    console.error("Gagal mengambil berita:", error);
+
+  console.log("ERROR BERITA HOMEPAGE:", beritaError);
+
+  console.log("DATA BANNER HOMEPAGE:", bannerData);
+
+  console.log("ERROR BANNER HOMEPAGE:", bannerError);
+
+  if (beritaError) {
+    console.error("Gagal mengambil berita:", beritaError);
   }
 
-  const beritaTerbaru = latest ?? [];
+  if (bannerError) {
+    console.error("Gagal mengambil banner:", bannerError);
+  }
+
+  const beritaTerbaru: BeritaData[] = latest ?? [];
+
+  const bannerAktif: BannerData[] = (bannerData ?? []).filter(
+    (item): item is BannerData => Boolean(item.gambar),
+  );
 
   return (
     <section
@@ -98,12 +135,10 @@ export async function Berita() {
                         {/* FOTO */}
                         <div className="relative min-h-[220px] overflow-hidden bg-slate-100 sm:min-h-[250px]">
                           {item.gambar ? (
-                            <Image
+                            <img
                               src={item.gambar}
                               alt={item.judul}
-                              fill
-                              sizes="(max-width: 640px) 100vw, 38vw"
-                              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                             />
                           ) : (
                             <div className="flex h-full min-h-[220px] items-center justify-center text-sm text-slate-400">
@@ -116,6 +151,7 @@ export async function Berita() {
                         <div className="flex flex-col justify-center p-5 sm:p-6">
                           <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                             <Calendar size={13} className="text-[#B30000]" />
+
                             <span>{tanggal}</span>
                           </div>
 
@@ -162,27 +198,30 @@ export async function Berita() {
           <aside className="min-w-0 lg:pt-[2px]">
             <ScrollReveal variant="right">
               <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                {/* JUDUL PENGUMUMAN */}
                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#B30000]">
-                      Pengumuman
+                      INFROMASI TERKINI
                     </p>
 
                     <h3 className="mt-0.5 font-heading text-lg font-bold text-[#003366]">
-                      Hari Jadi Majene 481
+                      ORARI Lokal Majene
                     </h3>
                   </div>
                 </div>
 
-                <div className="relative bg-slate-100">
-                  <Image
-                    src="/images/banner-hjm481.png"
-                    alt="Banner Hari Jadi Majene ke-481 tahun 2026 dari ORARI Lokal Majene"
-                    width={1024}
-                    height={1536}
-                    sizes="(max-width: 1024px) 100vw, 25vw"
-                    className="h-auto max-h-[240px] w-full object-contain sm:max-h-[320px] lg:max-h-none"
-                  />
+                {/* BANNER DARI SUPABASE */}
+                <div className="bg-slate-100 p-3 sm:p-4">
+                  <div className="mx-auto w-full max-w-md">
+                    <BannerSlider
+                      banners={bannerAktif.map((item) => ({
+                        id: item.id,
+                        judul: item.judul,
+                        gambar: item.gambar!,
+                      }))}
+                    />
+                  </div>
                 </div>
               </div>
             </ScrollReveal>

@@ -108,7 +108,9 @@ export default function RootLayout({
         className={`${manrope.variable} ${spaceGrotesk.variable} font-sans antialiased bg-background text-foreground`}
       >
         <Header />
+
         {children}
+
         <Toaster />
       </body>
     </html>
