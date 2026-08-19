@@ -1,13 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
-
 export async function POST(request: NextRequest) {
   try {
+    /*
+     * =====================================================
+     * 0. Ambil environment variable saat API dipanggil
+     * =====================================================
+     */
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("ENV SUPABASE TIDAK LENGKAP.");
+
+      return NextResponse.json(
+        {
+          error: "Konfigurasi Supabase server belum lengkap.",
+        },
+        { status: 500 },
+      );
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
     /*
      * =====================================================
      * 1. Ambil token login dari browser
@@ -72,7 +93,9 @@ export async function POST(request: NextRequest) {
 
       if (posisi === -1) {
         return NextResponse.json(
-          { error: "URL gambar bukan berasal dari bucket banner." },
+          {
+            error: "URL gambar bukan berasal dari bucket banner.",
+          },
           { status: 400 },
         );
       }
@@ -83,7 +106,9 @@ export async function POST(request: NextRequest) {
 
       if (!storagePath) {
         return NextResponse.json(
-          { error: "Storage path gambar tidak ditemukan." },
+          {
+            error: "Storage path gambar tidak ditemukan.",
+          },
           { status: 400 },
         );
       }
