@@ -49,7 +49,14 @@ export const metadata: Metadata = {
 
   publisher: "ORARI Lokal Majene",
 
+  applicationName: "ORARI Lokal Majene",
+
   category: "organization",
+
+  icons: {
+    icon: "/images/logo-orari-lokal-majene.png",
+    apple: "/images/logo-orari-lokal-majene.png",
+  },
 
   alternates: {
     canonical: "https://orarilokalmajene.vercel.app",
