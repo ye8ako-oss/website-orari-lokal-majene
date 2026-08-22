@@ -3,7 +3,6 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import {
   Bold,
@@ -37,10 +36,23 @@ export function NewsEditor({
   disabled = false,
 }: NewsEditorProps) {
   const imageInputRef = useRef<HTMLInputElement | null>(null);
-  const imageSelectionRef = useRef<{ from: number; to: number } | null>(null);
+
+  /*
+   * Menandai bahwa perubahan terakhir berasal
+   * dari editor sendiri.
+   *
+   * Ini mencegah useEffect value -> editor
+   * menimpa hasil upload gambar.
+   */
+  const internalChangeRef = useRef(false);
+
+  /*
+   * Menyimpan HTML terakhir yang benar-benar
+   * dikirim oleh editor.
+   */
+  const lastEditorHTMLRef = useRef(value || "<p></p>");
 
   const [uploadingImage, setUploadingImage] = useState(false);
-
   const [error, setError] = useState("");
 
   const editor = useEditor({
@@ -49,16 +61,20 @@ export function NewsEditor({
         heading: {
           levels: [2, 3],
         },
-      }),
 
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-        linkOnPaste: true,
+        /*
+         * Link sudah tersedia melalui StarterKit
+         * pada Tiptap v3.
+         */
+        link: {
+          openOnClick: false,
+          autolink: true,
+          linkOnPaste: true,
 
-        HTMLAttributes: {
-          class:
-            "text-[#003366] underline decoration-[#B30000] underline-offset-2",
+          HTMLAttributes: {
+            class:
+              "text-[#003366] underline decoration-[#B30000] underline-offset-2",
+          },
         },
       }),
 
@@ -81,9 +97,6 @@ export function NewsEditor({
         class: "news-editor-content min-h-[420px] px-5 py-4 outline-none",
       },
 
-      /*
-       * Paste foto langsung ke editor.
-       */
       handlePaste: (_view, event) => {
         const items = event.clipboardData?.items;
 
@@ -105,9 +118,6 @@ export function NewsEditor({
         return false;
       },
 
-      /*
-       * Drag & drop foto langsung ke editor.
-       */
       handleDrop: (_view, event) => {
         const files = event.dataTransfer?.files;
 
@@ -131,31 +141,68 @@ export function NewsEditor({
       },
     },
 
+    onCreate: ({ editor }) => {
+      const html = editor.getHTML();
+
+      lastEditorHTMLRef.current = html;
+    },
+
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      const html = editor.getHTML();
+
+      /*
+       * Tandai bahwa perubahan berasal dari editor.
+       */
+      internalChangeRef.current = true;
+
+      /*
+       * Simpan HTML terakhir.
+       */
+      lastEditorHTMLRef.current = html;
+
+      /*
+       * Kirim HTML ke parent.
+       */
+      onChange(html);
     },
   });
 
   /*
    * ============================================================
-   * SINKRONISASI DATA SAAT EDIT BERITA
+   * SINKRONISASI VALUE DARI PARENT
    * ============================================================
+   *
+   * Penting:
+   * Jangan memanggil setContent setiap kali parent
+   * berubah karena itu dapat menimpa perubahan editor,
+   * termasuk gambar yang baru selesai di-upload.
    */
   useEffect(() => {
     if (!editor) {
       return;
     }
 
-    const currentHTML = editor.getHTML();
-
-    if (value !== currentHTML && value !== "") {
-      editor.commands.setContent(value, {
-        emitUpdate: false,
-      });
+    /*
+     * Jika perubahan berasal dari editor sendiri,
+     * jangan masukkan kembali value ke editor.
+     */
+    if (internalChangeRef.current) {
+      internalChangeRef.current = false;
+      return;
     }
 
-    if (value === "" && currentHTML !== "<p></p>") {
-      editor.commands.clearContent();
+    const incomingHTML = value || "<p></p>";
+    const currentHTML = editor.getHTML();
+
+    /*
+     * Hanya sinkronkan jika memang berbeda.
+     */
+    if (incomingHTML !== currentHTML) {
+      editor.commands.setContent(incomingHTML, {
+        emitUpdate: false,
+      });
+
+      lastEditorHTMLRef.current = incomingHTML;
     }
   }, [editor, value]);
 
@@ -165,7 +212,7 @@ export function NewsEditor({
    * ============================================================
    */
   async function uploadImage(file: File) {
-    if (!editor || disabled) {
+    if (!editor || disabled || uploadingImage) {
       return;
     }
 
@@ -206,7 +253,19 @@ export function NewsEditor({
       }
 
       /*
-       * Buat nama file unik.
+       * Simpan posisi kursor sebelum proses upload.
+       *
+       * Upload membutuhkan waktu beberapa saat.
+       * Tanpa menyimpan posisi ini, selection editor
+       * bisa berubah ketika upload selesai.
+       */
+      const selection = editor.state.selection;
+
+      const from = selection.from;
+      const to = selection.to;
+
+      /*
+       * Nama file unik.
        */
       const ekstensi = file.name.split(".").pop()?.toLowerCase() || "jpg";
 
@@ -249,10 +308,25 @@ export function NewsEditor({
       }
 
       /*
-       * Masukkan foto ke posisi
-       * kursor editor.
+       * Pastikan editor masih aktif.
        */
-      editor
+      if (editor.isDestroyed) {
+        return;
+      }
+
+      /*
+       * Kembalikan selection ke posisi
+       * sebelum upload.
+       */
+      editor.commands.setTextSelection({
+        from,
+        to,
+      });
+
+      /*
+       * Masukkan gambar ke dokumen.
+       */
+      const berhasil = editor
         .chain()
         .focus()
         .setImage({
@@ -262,18 +336,42 @@ export function NewsEditor({
         })
         .run();
 
+      if (!berhasil) {
+        console.error("Tiptap gagal memasukkan gambar.");
+
+        setError("Foto berhasil diunggah tetapi gagal dimasukkan ke editor.");
+
+        return;
+      }
+
       /*
-       * Buat paragraf baru setelah foto
-       * agar admin bisa langsung melanjutkan
-       * mengetik.
+       * Tambahkan paragraf kosong setelah gambar.
+       *
+       * Kita lakukan dengan insertContentAfter,
+       * bukan insertContent global yang dapat
+       * mengganggu selection.
        */
+      const posisiSetelahGambar = editor.state.selection.to;
+
       editor
         .chain()
         .focus()
+        .setTextSelection(posisiSetelahGambar)
         .insertContent({
           type: "paragraph",
         })
         .run();
+
+      /*
+       * Pastikan HTML terbaru dikirim ke parent.
+       */
+      const htmlTerbaru = editor.getHTML();
+
+      internalChangeRef.current = true;
+
+      lastEditorHTMLRef.current = htmlTerbaru;
+
+      onChange(htmlTerbaru);
     } catch (err) {
       console.error("ERROR UPLOAD FOTO ISI:", err);
 
@@ -285,7 +383,7 @@ export function NewsEditor({
 
   /*
    * ============================================================
-   * INPUT FILE
+   * INPUT FOTO
    * ============================================================
    */
   function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
@@ -338,18 +436,12 @@ export function NewsEditor({
 
     const trimmedURL = url.trim();
 
-    /*
-     * Jika kosong, hapus link.
-     */
     if (!trimmedURL) {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
 
       return;
     }
 
-    /*
-     * Tambahkan link.
-     */
     editor
       .chain()
       .focus()
@@ -424,9 +516,7 @@ export function NewsEditor({
             : "focus-within:border-[#003366] focus-within:ring-2 focus-within:ring-[#003366]/20"
         }`}
       >
-        {/* ======================================================
-            TOOLBAR
-            ====================================================== */}
+        {/* TOOLBAR */}
         <div className="flex flex-wrap items-center gap-1 border-b border-gray-200 bg-gray-50 p-2">
           {/* BOLD */}
           <button
@@ -479,9 +569,7 @@ export function NewsEditor({
                 .run()
             }
             className={`rounded-md px-2 py-2 text-sm font-bold transition ${
-              editor.isActive("heading", {
-                level: 2,
-              })
+              editor.isActive("heading", { level: 2 })
                 ? "bg-[#003366] text-white"
                 : "text-gray-700 hover:bg-gray-200"
             } disabled:cursor-not-allowed disabled:opacity-40`}
@@ -506,9 +594,7 @@ export function NewsEditor({
                 .run()
             }
             className={`rounded-md px-2 py-2 text-sm font-bold transition ${
-              editor.isActive("heading", {
-                level: 3,
-              })
+              editor.isActive("heading", { level: 3 })
                 ? "bg-[#003366] text-white"
                 : "text-gray-700 hover:bg-gray-200"
             } disabled:cursor-not-allowed disabled:opacity-40`}
@@ -516,7 +602,7 @@ export function NewsEditor({
             H3
           </button>
 
-          {/* BULLET LIST */}
+          {/* BULLET */}
           <button
             type="button"
             title="Daftar"
@@ -533,7 +619,7 @@ export function NewsEditor({
             <List size={18} />
           </button>
 
-          {/* ORDERED LIST */}
+          {/* ORDERED */}
           <button
             type="button"
             title="Daftar bernomor"
@@ -550,7 +636,7 @@ export function NewsEditor({
             <ListOrdered size={18} />
           </button>
 
-          {/* BLOCKQUOTE */}
+          {/* QUOTE */}
           <button
             type="button"
             title="Kutipan"
@@ -618,7 +704,7 @@ export function NewsEditor({
 
           <div className="mx-1 h-6 w-px bg-gray-300" />
 
-          {/* CLEAR FORMATTING */}
+          {/* CLEAR */}
           <button
             type="button"
             title="Hapus Formatting"
@@ -658,15 +744,11 @@ export function NewsEditor({
           </button>
         </div>
 
-        {/* ======================================================
-            EDITOR CONTENT
-            ====================================================== */}
+        {/* EDITOR */}
         <EditorContent editor={editor} />
       </div>
 
-      {/* ========================================================
-          INPUT FOTO
-          ======================================================== */}
+      {/* INPUT FOTO */}
       <input
         ref={imageInputRef}
         type="file"
@@ -676,9 +758,7 @@ export function NewsEditor({
         className="hidden"
       />
 
-      {/* ========================================================
-          STATUS UPLOAD
-          ======================================================== */}
+      {/* STATUS */}
       {uploadingImage && (
         <div className="mt-2 flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700">
           <Loader2 size={15} className="animate-spin" />
@@ -686,27 +766,21 @@ export function NewsEditor({
         </div>
       )}
 
-      {/* ========================================================
-          ERROR
-          ======================================================== */}
+      {/* ERROR */}
       {error && (
         <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
           {error}
         </div>
       )}
 
-      {/* ========================================================
-          PETUNJUK UNTUK ADMIN
-          ======================================================== */}
+      {/* PETUNJUK */}
       <p className="mt-2 text-xs leading-5 text-gray-400">
         Gunakan toolbar untuk membuat teks tebal, miring, subjudul, daftar,
         kutipan, link, dan menambahkan foto pendukung. Foto juga dapat ditempel
         langsung dari clipboard atau di-drag ke editor.
       </p>
 
-      {/* ========================================================
-          STYLE EDITOR
-          ======================================================== */}
+      {/* STYLE */}
       <style jsx global>{`
         .news-editor-content {
           font-size: 1rem;
@@ -772,20 +846,6 @@ export function NewsEditor({
           text-underline-offset: 2px;
         }
 
-        /*
-         * ======================================================
-         * FOTO ISI BERITA
-         *
-         * Desktop:
-         * maksimal 70% dari area editor.
-         *
-         * HP/tablet:
-         * maksimal mengikuti lebar layar.
-         *
-         * Yang penting:
-         * foto kecil TIDAK dibesarkan secara paksa.
-         * ======================================================
-         */
         .news-editor-content img.news-content-image {
           display: block;
           width: auto;
@@ -817,11 +877,6 @@ export function NewsEditor({
           pointer-events: none;
         }
 
-        /*
-         * ======================================================
-         * RESPONSIVE
-         * ======================================================
-         */
         @media (max-width: 768px) {
           .news-editor-content img.news-content-image {
             max-width: 100%;

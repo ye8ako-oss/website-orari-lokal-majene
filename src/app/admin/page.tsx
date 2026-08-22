@@ -2,14 +2,30 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, ImagePlus, LogOut, Newspaper, Plus } from "lucide-react";
+import {
+  FileText,
+  ImagePlus,
+  LogOut,
+  Newspaper,
+  Plus,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
+
+type CleaningResult = {
+  berita: number;
+  banner: number;
+  dokumen: number;
+  total: number;
+};
 
 export default function AdminPage() {
   const router = useRouter();
 
   const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
+  const [cleaning, setCleaning] = useState(false);
 
   useEffect(() => {
     async function checkAdmin() {
@@ -34,6 +50,283 @@ export default function AdminPage() {
     router.replace("/admin/login");
   }
 
+  /*
+   * ============================================================
+   * MENGAMBIL STORAGE PATH DARI URL
+   * ============================================================
+   */
+  function getStoragePathFromUrl(
+    url: string | null,
+    bucket: string,
+  ): string | null {
+    if (!url) {
+      return null;
+    }
+
+    try {
+      const marker = `/storage/v1/object/public/${bucket}/`;
+
+      const posisi = url.indexOf(marker);
+
+      if (posisi === -1) {
+        console.warn(`URL tidak berasal dari bucket ${bucket}:`, url);
+
+        return null;
+      }
+
+      const path = url.substring(posisi + marker.length);
+
+      if (!path) {
+        return null;
+      }
+
+      return decodeURIComponent(path);
+    } catch (error) {
+      console.error(`ERROR MENGAMBIL STORAGE PATH BUCKET ${bucket}:`, error);
+
+      return null;
+    }
+  }
+
+  /*
+   * ============================================================
+   * BERSIHKAN BUCKET
+   *
+   * referencePaths = file yang masih digunakan database
+   * bucket         = nama bucket Supabase Storage
+   * ============================================================
+   */
+  async function cleanBucket(
+    bucket: "berita" | "banner" | "dokumen",
+    referencePaths: Set<string>,
+  ): Promise<number> {
+    console.log("=================================");
+    console.log("MEMERIKSA BUCKET:", bucket);
+    console.log("FILE YANG MASIH DIGUNAKAN:", [...referencePaths]);
+    console.log("=================================");
+
+    /*
+     * Ambil isi root bucket.
+     *
+     * Saat ini file-file kita berada langsung di root bucket.
+     */
+    const { data: daftarStorage, error: storageError } = await supabase.storage
+      .from(bucket)
+      .list("", {
+        limit: 1000,
+        sortBy: {
+          column: "name",
+          order: "asc",
+        },
+      });
+
+    if (storageError) {
+      console.error(`ERROR MEMBACA STORAGE ${bucket}:`, storageError);
+
+      throw new Error(`Gagal membaca Storage bucket ${bucket}.`);
+    }
+
+    /*
+     * Cari file yang tidak digunakan.
+     */
+    const fileTidakTerpakai = (daftarStorage ?? [])
+      .filter((file) => {
+        /*
+         * Abaikan folder.
+         */
+        if (!file.id) {
+          return false;
+        }
+
+        /*
+         * Untuk root bucket, nama file menjadi storage path.
+         */
+        return !referencePaths.has(file.name);
+      })
+      .map((file) => file.name);
+
+    console.log(`FILE TIDAK TERPAKAI DI ${bucket}:`, fileTidakTerpakai);
+
+    if (fileTidakTerpakai.length === 0) {
+      return 0;
+    }
+
+    /*
+     * Hapus file yang tidak digunakan.
+     */
+    const { data: hasilHapus, error: hapusError } = await supabase.storage
+      .from(bucket)
+      .remove(fileTidakTerpakai);
+
+    if (hapusError) {
+      console.error(`ERROR MENGHAPUS FILE DARI ${bucket}:`, hapusError);
+
+      throw new Error(`Gagal menghapus file dari bucket ${bucket}.`);
+    }
+
+    console.log(`HASIL PEMBERSIHAN ${bucket}:`, hasilHapus);
+
+    return fileTidakTerpakai.length;
+  }
+
+  /*
+   * ============================================================
+   * PEMBERSIHAN STORAGE SEMUA BUCKET
+   * ============================================================
+   */
+  async function handleCleanStorage() {
+    const yakin = window.confirm(
+      "Sistem akan memeriksa Storage Berita, Banner, dan Dokumen.\n\n" +
+        "File yang masih digunakan oleh website TIDAK akan dihapus.\n\n" +
+        "Hanya file yang tidak lagi digunakan yang akan dibersihkan.\n\n" +
+        "Lanjutkan pembersihan?",
+    );
+
+    if (!yakin) {
+      return;
+    }
+
+    setCleaning(true);
+
+    try {
+      /*
+       * ========================================================
+       * 1. BERITA
+       * ========================================================
+       */
+
+      const { data: beritaDatabase, error: beritaError } = await supabase
+        .from("berita")
+        .select("gambar");
+
+      if (beritaError) {
+        console.error("ERROR MEMBACA TABEL BERITA:", beritaError);
+
+        throw new Error("Gagal membaca data berita.");
+      }
+
+      const fotoBeritaDipakai = new Set<string>();
+
+      (beritaDatabase ?? []).forEach((item) => {
+        const path = getStoragePathFromUrl(item.gambar, "berita");
+
+        if (path) {
+          fotoBeritaDipakai.add(path);
+        }
+      });
+
+      /*
+       * ========================================================
+       * 2. BANNER
+       * ========================================================
+       */
+
+      const { data: bannerDatabase, error: bannerError } = await supabase
+        .from("banner")
+        .select("gambar");
+
+      if (bannerError) {
+        console.error("ERROR MEMBACA TABEL BANNER:", bannerError);
+
+        throw new Error("Gagal membaca data banner.");
+      }
+
+      const fotoBannerDipakai = new Set<string>();
+
+      (bannerDatabase ?? []).forEach((item) => {
+        const path = getStoragePathFromUrl(item.gambar, "banner");
+
+        if (path) {
+          fotoBannerDipakai.add(path);
+        }
+      });
+
+      /*
+       * ========================================================
+       * 3. DOKUMEN
+       * ========================================================
+       */
+
+      const { data: dokumenDatabase, error: dokumenError } = await supabase
+        .from("dokumen")
+        .select("file_url");
+
+      if (dokumenError) {
+        console.error("ERROR MEMBACA TABEL DOKUMEN:", dokumenError);
+
+        throw new Error("Gagal membaca data dokumen.");
+      }
+
+      const fileDokumenDipakai = new Set<string>();
+
+      (dokumenDatabase ?? []).forEach((item) => {
+        const path = getStoragePathFromUrl(item.file_url, "dokumen");
+
+        if (path) {
+          fileDokumenDipakai.add(path);
+        }
+      });
+
+      /*
+       * ========================================================
+       * 4. BERSIHKAN KETIGA BUCKET
+       * ========================================================
+       */
+
+      const jumlahBerita = await cleanBucket("berita", fotoBeritaDipakai);
+
+      const jumlahBanner = await cleanBucket("banner", fotoBannerDipakai);
+
+      const jumlahDokumen = await cleanBucket("dokumen", fileDokumenDipakai);
+
+      const hasil: CleaningResult = {
+        berita: jumlahBerita,
+        banner: jumlahBanner,
+        dokumen: jumlahDokumen,
+        total: jumlahBerita + jumlahBanner + jumlahDokumen,
+      };
+
+      /*
+       * ========================================================
+       * HASIL
+       * ========================================================
+       */
+
+      if (hasil.total === 0) {
+        alert(
+          "Pembersihan selesai.\n\n" +
+            "Tidak ditemukan file yang tidak terpakai.\n\n" +
+            "Semua file Storage masih digunakan oleh konten website.",
+        );
+      } else {
+        alert(
+          "PEMBERSIHAN STORAGE SELESAI\n\n" +
+            `Berita   : ${hasil.berita} file\n` +
+            `Banner   : ${hasil.banner} file\n` +
+            `Dokumen  : ${hasil.dokumen} file\n` +
+            "-------------------------\n" +
+            `TOTAL    : ${hasil.total} file`,
+        );
+      }
+    } catch (error) {
+      console.error("ERROR PEMBERSIHAN STORAGE:", error);
+
+      alert(
+        error instanceof Error
+          ? `Pembersihan Storage gagal.\n\n${error.message}\n\nTidak ada proses lanjutan yang dilakukan.`
+          : "Terjadi kesalahan saat membersihkan Storage.",
+      );
+    } finally {
+      setCleaning(false);
+    }
+  }
+
+  /*
+   * ============================================================
+   * LOADING
+   * ============================================================
+   */
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -45,6 +338,12 @@ export default function AdminPage() {
       </main>
     );
   }
+
+  /*
+   * ============================================================
+   * DASHBOARD
+   * ============================================================
+   */
 
   return (
     <main className="min-h-screen bg-gray-100 px-4 py-6 sm:px-6 lg:px-8">
@@ -193,6 +492,52 @@ export default function AdminPage() {
               <div className="mt-5 text-sm font-semibold text-[#001f3f] transition group-hover:text-green-700">
                 Buka Pengelolaan Dokumen →
               </div>
+            </button>
+          </div>
+        </div>
+
+        {/* =====================================================
+            PEMBERSIH STORAGE
+            ===================================================== */}
+        <div className="mt-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                  <Sparkles size={22} />
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-bold text-[#001f3f] sm:text-xl">
+                    Pemeliharaan Storage
+                  </h2>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Bersihkan file yang sudah tidak digunakan.
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-sm leading-6 text-gray-500">
+                Sistem akan memeriksa Storage <strong>berita</strong>,{" "}
+                <strong>banner</strong>, dan <strong>dokumen</strong>. File yang
+                masih digunakan oleh konten website akan tetap aman.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCleanStorage}
+              disabled={cleaning}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-amber-500 px-5 py-3 text-sm font-semibold text-amber-700 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {cleaning ? (
+                <Loader2 size={17} className="animate-spin" />
+              ) : (
+                <Sparkles size={17} />
+              )}
+
+              {cleaning ? "Membersihkan..." : "Bersihkan Storage"}
             </button>
           </div>
         </div>

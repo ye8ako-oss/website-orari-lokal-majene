@@ -1,25 +1,10 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
-import {
-  Bold,
-  Italic,
-  Link as LinkIcon,
-  List,
-  ListOrdered,
-  Heading2,
-  ImagePlus,
-  Undo2,
-  Redo2,
-  Unlink,
-  Loader2,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import NewsEditor from "@/components/orari/news-editor";
 
 type Berita = {
   id: number;
@@ -37,8 +22,6 @@ export default function EditBeritaPage() {
 
   const id = params.id as string;
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const [judul, setJudul] = useState("");
   const [slug, setSlug] = useState("");
   const [isi, setIsi] = useState("");
@@ -49,43 +32,13 @@ export default function EditBeritaPage() {
   const [loadingData, setLoadingData] = useState(true);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadingIsi, setUploadingIsi] = useState(false);
   const [error, setError] = useState("");
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [2, 3],
-        },
-      }),
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-        linkOnPaste: true,
-      }),
-      Image.configure({
-        inline: false,
-        allowBase64: false,
-      }),
-    ],
-
-    content: "",
-
-    immediatelyRender: false,
-
-    editorProps: {
-      attributes: {
-        class:
-          "min-h-[420px] px-5 py-4 text-base leading-8 text-gray-700 outline-none prose prose-lg max-w-none",
-      },
-    },
-
-    onUpdate: ({ editor }) => {
-      setIsi(editor.getHTML());
-    },
-  });
-
+  /*
+   * ============================================================
+   * MEMUAT BERITA
+   * ============================================================
+   */
   useEffect(() => {
     async function loadBerita() {
       const {
@@ -105,60 +58,30 @@ export default function EditBeritaPage() {
 
       if (error || !data) {
         console.error("ERROR MEMUAT BERITA:", error);
+
         setError("Berita tidak ditemukan.");
         setLoadingData(false);
+
         return;
       }
 
       setJudul(data.judul);
       setSlug(data.slug);
-      setIsi(data.isi);
+      setIsi(data.isi ?? "");
       setGambar(data.gambar ?? "");
       setPublish(data.publish);
-
-      if (editor) {
-        const isiLama = data.isi ?? "";
-
-        /*
-         * Berita lama mungkin masih berupa teks biasa.
-         * Jika sudah berupa HTML dari editor baru, langsung digunakan.
-         * Jika masih teks biasa, kita ubah menjadi paragraf.
-         */
-        const terlihatSepertiHtml = /<([a-z][\s\S]*?)>/i.test(isiLama);
-
-        if (terlihatSepertiHtml) {
-          editor.commands.setContent(isiLama);
-        } else {
-          const paragraphs = isiLama
-            .split(/\r?\n+/)
-            .map((paragraf) => paragraf.trim())
-            .filter(Boolean);
-
-          if (paragraphs.length > 0) {
-            editor.commands.setContent({
-              type: "doc",
-              content: paragraphs.map((paragraf) => ({
-                type: "paragraph",
-                content: [
-                  {
-                    type: "text",
-                    text: paragraf,
-                  },
-                ],
-              })),
-            });
-          } else {
-            editor.commands.clearContent();
-          }
-        }
-      }
 
       setLoadingData(false);
     }
 
-    loadBerita();
-  }, [id, router, editor]);
+    void loadBerita();
+  }, [id, router]);
 
+  /*
+   * ============================================================
+   * FOTO UTAMA
+   * ============================================================
+   */
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
 
@@ -177,6 +100,34 @@ export default function EditBeritaPage() {
     }
   }
 
+  async function hapusFotoLama(urlFotoLama: string) {
+    const namaFileLama = getNamaFileDariUrl(urlFotoLama);
+
+    if (!namaFileLama) {
+      console.warn(
+        "Nama file foto lama tidak dapat dibaca dari URL:",
+        urlFotoLama,
+      );
+
+      return;
+    }
+
+    const { error } = await supabase.storage
+      .from("berita")
+      .remove([namaFileLama]);
+
+    if (error) {
+      console.error("ERROR HAPUS FOTO LAMA:", error);
+    } else {
+      console.log("FOTO LAMA BERHASIL DIHAPUS:", namaFileLama);
+    }
+  }
+
+  /*
+   * ============================================================
+   * UPLOAD FOTO UTAMA
+   * ============================================================
+   */
   async function uploadFoto(): Promise<string | null> {
     if (!fileGambar) {
       return gambar || null;
@@ -250,156 +201,11 @@ export default function EditBeritaPage() {
     }
   }
 
-  async function uploadFotoIsi(file: File) {
-    const tipeYangDiizinkan = ["image/jpeg", "image/png", "image/webp"];
-
-    if (!tipeYangDiizinkan.includes(file.type)) {
-      setError("Format foto harus JPG, PNG, atau WebP.");
-      return;
-    }
-
-    const ukuranMaksimal = 5 * 1024 * 1024;
-
-    if (file.size > ukuranMaksimal) {
-      setError("Ukuran foto maksimal 5 MB.");
-      return;
-    }
-
-    if (!editor) {
-      return;
-    }
-
-    setUploadingIsi(true);
-    setError("");
-
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.replace("/admin/login");
-        return;
-      }
-
-      const ekstensi = file.name.split(".").pop()?.toLowerCase() || "jpg";
-
-      const namaFile = `${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2, 12)}.${ekstensi}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("berita")
-        .upload(namaFile, file, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: file.type,
-        });
-
-      if (uploadError) {
-        console.error("ERROR UPLOAD FOTO ISI:", uploadError);
-
-        setError("Foto pendukung gagal diunggah.");
-
-        return;
-      }
-
-      const { data } = supabase.storage.from("berita").getPublicUrl(namaFile);
-
-      if (!data.publicUrl) {
-        setError("URL foto pendukung tidak berhasil dibuat.");
-
-        return;
-      }
-
-      editor
-        .chain()
-        .focus()
-        .setImage({
-          src: data.publicUrl,
-          alt: file.name,
-          title: file.name,
-        })
-        .run();
-
-      editor.chain().focus().insertContent("<p></p>").run();
-    } catch (err) {
-      console.error("ERROR UPLOAD FOTO ISI:", err);
-
-      setError("Terjadi kesalahan saat mengunggah foto pendukung.");
-    } finally {
-      setUploadingIsi(false);
-    }
-  }
-
-  function pilihFotoIsi() {
-    fileInputRef.current?.click();
-  }
-
-  function handleFotoIsiChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (file) {
-      uploadFotoIsi(file);
-    }
-
-    event.target.value = "";
-  }
-
-  function tambahLink() {
-    if (!editor) {
-      return;
-    }
-
-    const linkSaatIni = editor.getAttributes("link").href;
-
-    const url = window.prompt(
-      "Masukkan alamat link:",
-      linkSaatIni || "https://",
-    );
-
-    if (url === null) {
-      return;
-    }
-
-    if (!url.trim()) {
-      editor.chain().focus().unsetLink().run();
-      return;
-    }
-
-    editor
-      .chain()
-      .focus()
-      .extendMarkRange("link")
-      .setLink({
-        href: url.trim(),
-      })
-      .run();
-  }
-
-  async function hapusFotoLama(urlFotoLama: string) {
-    const namaFileLama = getNamaFileDariUrl(urlFotoLama);
-
-    if (!namaFileLama) {
-      console.warn(
-        "Nama file foto lama tidak dapat dibaca dari URL:",
-        urlFotoLama,
-      );
-
-      return;
-    }
-
-    const { error } = await supabase.storage
-      .from("berita")
-      .remove([namaFileLama]);
-
-    if (error) {
-      console.error("ERROR HAPUS FOTO LAMA:", error);
-    } else {
-      console.log("FOTO LAMA BERHASIL DIHAPUS:", namaFileLama);
-    }
-  }
-
+  /*
+   * ============================================================
+   * SIMPAN PERUBAHAN
+   * ============================================================
+   */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -427,25 +233,23 @@ export default function EditBeritaPage() {
       return;
     }
 
-    if (!editor) {
-      setError("Editor berita belum siap. Silakan tunggu sebentar.");
-
-      setLoading(false);
-      return;
-    }
-
-    const isiHTML = editor.getHTML();
-
-    if (!isiHTML || isiHTML === "<p></p>") {
+    if (!isi || isi === "<p></p>") {
       setError("Isi berita wajib diisi.");
       setLoading(false);
       return;
     }
 
+    /*
+     * Simpan foto utama lama.
+     */
     const fotoLama = gambar || null;
 
     let urlGambar = gambar;
 
+    /*
+     * Jika admin memilih foto utama baru,
+     * upload terlebih dahulu.
+     */
     if (fileGambar) {
       const hasilUpload = await uploadFoto();
 
@@ -457,12 +261,17 @@ export default function EditBeritaPage() {
       urlGambar = hasilUpload;
     }
 
+    /*
+     * Update berita.
+     *
+     * Isi berita berasal langsung dari NewsEditor.
+     */
     const { error: updateError } = await supabase
       .from("berita")
       .update({
         judul: judul.trim(),
         slug: slug.trim(),
-        isi: isiHTML,
+        isi,
         gambar: urlGambar || null,
         publish,
       })
@@ -474,17 +283,30 @@ export default function EditBeritaPage() {
       setError("Berita gagal diperbarui.");
 
       setLoading(false);
+
       return;
     }
 
+    /*
+     * Jika foto utama diganti,
+     * hapus foto utama lama.
+     */
     if (fileGambar && fotoLama && fotoLama !== urlGambar) {
       await hapusFotoLama(fotoLama);
     }
 
+    /*
+     * Kembali ke dashboard.
+     */
     router.push("/admin");
     router.refresh();
   }
 
+  /*
+   * ============================================================
+   * LOADING
+   * ============================================================
+   */
   if (loadingData) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -497,20 +319,11 @@ export default function EditBeritaPage() {
     );
   }
 
-  if (!editor) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <Loader2 size={28} className="mx-auto animate-spin text-[#001f3f]" />
-
-          <p className="mt-3 text-sm text-gray-500">
-            Menyiapkan editor berita...
-          </p>
-        </div>
-      </main>
-    );
-  }
-
+  /*
+   * ============================================================
+   * HALAMAN
+   * ============================================================
+   */
   return (
     <main className="min-h-screen bg-gray-100 px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-5xl">
@@ -540,7 +353,9 @@ export default function EditBeritaPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* JUDUL */}
+            {/* ==================================================
+                JUDUL
+                ================================================== */}
             <div>
               <label
                 htmlFor="judul"
@@ -559,7 +374,9 @@ export default function EditBeritaPage() {
               />
             </div>
 
-            {/* SLUG */}
+            {/* ==================================================
+                SLUG
+                ================================================== */}
             <div>
               <label
                 htmlFor="slug"
@@ -582,175 +399,24 @@ export default function EditBeritaPage() {
               </p>
             </div>
 
-            {/* EDITOR */}
+            {/* ==================================================
+                EDITOR
+                ================================================== */}
             <div>
               <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Isi Berita
               </label>
 
-              <div className="overflow-hidden rounded-xl border border-gray-300 bg-white focus-within:border-[#001f3f] focus-within:ring-2 focus-within:ring-[#001f3f]/20">
-                {/* TOOLBAR */}
-                <div className="flex flex-wrap items-center gap-1 border-b border-gray-200 bg-gray-50 p-2">
-                  <button
-                    type="button"
-                    title="Tebal"
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                    className={`rounded-md p-2 transition ${
-                      editor.isActive("bold")
-                        ? "bg-[#001f3f] text-white"
-                        : "text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    <Bold size={18} />
-                  </button>
-
-                  <button
-                    type="button"
-                    title="Miring"
-                    onClick={() => editor.chain().focus().toggleItalic().run()}
-                    className={`rounded-md p-2 transition ${
-                      editor.isActive("italic")
-                        ? "bg-[#001f3f] text-white"
-                        : "text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    <Italic size={18} />
-                  </button>
-
-                  <button
-                    type="button"
-                    title="Subjudul"
-                    onClick={() =>
-                      editor
-                        .chain()
-                        .focus()
-                        .toggleHeading({
-                          level: 2,
-                        })
-                        .run()
-                    }
-                    className={`rounded-md px-2 py-2 text-sm font-bold transition ${
-                      editor.isActive("heading", {
-                        level: 2,
-                      })
-                        ? "bg-[#001f3f] text-white"
-                        : "text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    H2
-                  </button>
-
-                  <button
-                    type="button"
-                    title="Daftar"
-                    onClick={() =>
-                      editor.chain().focus().toggleBulletList().run()
-                    }
-                    className={`rounded-md p-2 transition ${
-                      editor.isActive("bulletList")
-                        ? "bg-[#001f3f] text-white"
-                        : "text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    <List size={18} />
-                  </button>
-
-                  <button
-                    type="button"
-                    title="Daftar bernomor"
-                    onClick={() =>
-                      editor.chain().focus().toggleOrderedList().run()
-                    }
-                    className={`rounded-md p-2 transition ${
-                      editor.isActive("orderedList")
-                        ? "bg-[#001f3f] text-white"
-                        : "text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    <ListOrdered size={18} />
-                  </button>
-
-                  <button
-                    type="button"
-                    title="Tambah link"
-                    onClick={tambahLink}
-                    className={`rounded-md p-2 transition ${
-                      editor.isActive("link")
-                        ? "bg-[#001f3f] text-white"
-                        : "text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    <LinkIcon size={18} />
-                  </button>
-
-                  {editor.isActive("link") && (
-                    <button
-                      type="button"
-                      title="Hapus link"
-                      onClick={() => editor.chain().focus().unsetLink().run()}
-                      className="rounded-md p-2 text-gray-700 hover:bg-gray-200"
-                    >
-                      <Unlink size={18} />
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    title="Tambahkan foto ke isi berita"
-                    onClick={pilihFotoIsi}
-                    disabled={uploadingIsi}
-                    className="rounded-md p-2 text-gray-700 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {uploadingIsi ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <ImagePlus size={18} />
-                    )}
-                  </button>
-
-                  <div className="mx-1 h-6 w-px bg-gray-300" />
-
-                  <button
-                    type="button"
-                    title="Urungkan"
-                    onClick={() => editor.chain().focus().undo().run()}
-                    disabled={!editor.can().undo()}
-                    className="rounded-md p-2 text-gray-700 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <Undo2 size={18} />
-                  </button>
-
-                  <button
-                    type="button"
-                    title="Ulangi"
-                    onClick={() => editor.chain().focus().redo().run()}
-                    disabled={!editor.can().redo()}
-                    className="rounded-md p-2 text-gray-700 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30"
-                  >
-                    <Redo2 size={18} />
-                  </button>
-                </div>
-
-                {/* AREA EDITOR */}
-                <EditorContent editor={editor} />
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleFotoIsiChange}
-                className="hidden"
+              <NewsEditor
+                value={isi}
+                onChange={setIsi}
+                disabled={loading || uploading}
               />
-
-              <p className="mt-2 text-xs text-gray-400">
-                Gunakan toolbar untuk teks tebal, miring, subjudul, daftar,
-                link, dan foto pendukung. Foto akan ditempatkan langsung di
-                dalam isi berita.
-              </p>
             </div>
 
-            {/* FOTO UTAMA */}
+            {/* ==================================================
+                FOTO UTAMA
+                ================================================== */}
             <div>
               <label
                 htmlFor="gambar"
@@ -776,7 +442,7 @@ export default function EditBeritaPage() {
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 onChange={handleFileChange}
-                disabled={uploading || loading || uploadingIsi}
+                disabled={uploading || loading}
                 className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none file:mr-4 file:rounded-md file:border-0 file:bg-[#001f3f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#003b6f] disabled:cursor-not-allowed disabled:opacity-60"
               />
 
@@ -798,7 +464,9 @@ export default function EditBeritaPage() {
               )}
             </div>
 
-            {/* STATUS */}
+            {/* ==================================================
+                STATUS
+                ================================================== */}
             <div className="rounded-lg border border-gray-200 p-4">
               <label className="flex cursor-pointer items-center gap-3">
                 <input
@@ -819,19 +487,23 @@ export default function EditBeritaPage() {
               </p>
             </div>
 
-            {/* ERROR */}
+            {/* ==================================================
+                ERROR
+                ================================================== */}
             {error && (
               <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
                 {error}
               </div>
             )}
 
-            {/* TOMBOL */}
+            {/* ==================================================
+                TOMBOL
+                ================================================== */}
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => router.push("/admin")}
-                disabled={loading || uploading || uploadingIsi}
+                disabled={loading || uploading}
                 className="rounded-lg border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Batal
@@ -839,16 +511,14 @@ export default function EditBeritaPage() {
 
               <button
                 type="submit"
-                disabled={loading || uploading || uploadingIsi}
+                disabled={loading || uploading}
                 className="rounded-lg bg-[#001f3f] px-6 py-3 font-semibold text-white hover:bg-[#003b6f] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {uploading
                   ? "Mengunggah Foto..."
-                  : uploadingIsi
-                    ? "Mengunggah Foto Isi..."
-                    : loading
-                      ? "Menyimpan..."
-                      : "Simpan Perubahan"}
+                  : loading
+                    ? "Menyimpan..."
+                    : "Simpan Perubahan"}
               </button>
             </div>
           </form>

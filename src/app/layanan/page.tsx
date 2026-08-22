@@ -1,8 +1,7 @@
-import { Header } from "@/components/orari/header";
 import {
   ArrowRight,
   Radio,
-  ShieldAlert,
+  RadioTower,
   Building2,
   GraduationCap,
   CheckCircle2,
@@ -17,7 +16,6 @@ export default function LayananPage() {
           HERO LAYANAN
          ========================================================= */}
       <section className="relative overflow-hidden pt-28 pb-20 sm:pt-32 sm:pb-24">
-        {/* Dekorasi lingkaran */}
         <div className="pointer-events-none absolute -right-24 -top-20 h-72 w-72 rounded-full border border-[#003b70]/10" />
         <div className="pointer-events-none absolute -right-16 -top-12 h-56 w-56 rounded-full border border-[#b30000]/10" />
 
@@ -25,6 +23,7 @@ export default function LayananPage() {
           <div className="max-w-4xl">
             <div className="mb-6 flex items-center gap-4">
               <span className="h-px w-10 bg-[#b30000]" />
+
               <span className="text-sm font-bold uppercase tracking-[0.28em] text-[#b30000]">
                 Layanan ORARI
               </span>
@@ -46,265 +45,81 @@ export default function LayananPage() {
       </section>
 
       {/* =========================================================
-          CORE — LAYANAN UTAMA
+          LAYANAN — CORE
          ========================================================= */}
       <section className="pb-8 sm:pb-10">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#003b70] via-[#064b86] to-[#002c55] p-7 text-white shadow-xl sm:p-10 lg:p-12">
+          <article className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#f8fbff] via-[#eaf3fb] to-[#d9e9f6] text-[#12385f] shadow-xl ring-1 ring-[#003b70]/10">
             {/* Dekorasi */}
-            <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full border border-white/10" />
-            <div className="pointer-events-none absolute -right-8 -top-8 h-48 w-48 rounded-full border border-white/10" />
+            <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full border border-[#003b70]/10" />
+            <div className="pointer-events-none absolute -right-8 -top-8 h-52 w-52 rounded-full border border-[#b30000]/10" />
 
-            <div className="relative grid lg:grid-cols-[1.05fr_0.95fr]">
-              <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-3xl">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/10">
-                      <ShieldAlert size={28} />
-                    </div>
+            <div className="grid lg:grid-cols-[1fr_0.9fr]">
+              {/* FOTO CORE */}
+              <div className="relative order-first min-h-[260px] overflow-hidden bg-[#eaf3fb] sm:min-h-[320px] lg:order-last lg:min-h-full">
+                <img
+                  src="/images/layanan-core.png"
+                  alt="Layanan CORE ORARI Lokal Majene"
+                  className="absolute inset-0 h-full w-full object-contain p-3 transition-transform duration-700 group-hover:scale-[1.02]"
+                />
 
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-200">
-                        Layanan Utama
-                      </p>
-                      <h2 className="mt-1 text-3xl font-bold sm:text-4xl">
-                        CORE
-                      </h2>
-                    </div>
-                  </div>
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#003b70]/10 lg:bg-gradient-to-r lg:from-[#eaf3fb]/30 lg:via-transparent lg:to-transparent" />
 
-                  <p className="mt-7 text-sm font-semibold uppercase tracking-wide text-blue-200">
+                <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/50 bg-white/55 p-4 shadow-sm backdrop-blur-md">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#003b70]/70">
                     Communication & Radio Emergency
                   </p>
 
-                  <p className="mt-4 max-w-2xl text-base leading-7 text-blue-50/80">
-                    Dukungan komunikasi radio untuk kebutuhan keadaan darurat,
-                    kebencanaan, dan situasi yang membutuhkan koordinasi
-                    komunikasi lapangan.
+                  <p className="mt-1 text-sm font-bold text-[#003b70]">
+                    Dukungan komunikasi keadaan darurat
                   </p>
                 </div>
-
-                <div className="shrink-0">
-                  <div className="rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-blue-100">
-                    Siap mendukung komunikasi
-                  </div>
-                </div>
               </div>
 
-              <div className="mt-10 grid gap-4 border-t border-white/10 pt-7 sm:grid-cols-3">
-                {[
-                  "Dukungan komunikasi keadaan darurat",
-                  "Koordinasi komunikasi lapangan",
-                  "Pemanfaatan jaringan amatir radio",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-start gap-3 text-sm text-blue-50/90"
-                  >
-                    <CheckCircle2
-                      size={18}
-                      className="mt-0.5 shrink-0 text-blue-200"
-                    />
-                    <span>{item}</span>
+              {/* INFORMASI CORE */}
+              <div className="relative p-7 sm:p-10 lg:p-12">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#003b70]/8 text-[#003b70] ring-1 ring-[#003b70]/10">
+                    <RadioTower size={28} />
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* =========================================================
-          DUA LAYANAN — PEMERINTAH + RPU
-         ========================================================= */}
-      <section className="py-8 sm:py-10">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* PEMERINTAH */}
-            <article className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-9">
-              <div className="flex items-start justify-between">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#003b70]/8 text-[#003b70]">
-                  <Building2 size={27} />
+                  <span className="rounded-full border border-[#003b70]/10 bg-white/60 px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#003b70] shadow-sm">
+                    Layanan Utama
+                  </span>
                 </div>
 
-                <span className="rounded-full bg-[#b30000]/8 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#b30000]">
-                  Berdasarkan MoU
-                </span>
-              </div>
-
-              <p className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-[#b30000]">
-                02 · Pemerintah
-              </p>
-
-              <h2 className="mt-2 text-2xl font-bold text-[#003b70] sm:text-3xl">
-                Dukungan Komunikasi Pemerintahan
-              </h2>
-
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                Dukungan komunikasi radio untuk berbagai kegiatan pemerintah
-                yang telah disepakati dalam kerja sama dengan ORARI Lokal
-                Majene.
-              </p>
-
-              <div className="mt-7 space-y-3">
-                {[
-                  "Dukungan komunikasi kegiatan",
-                  "Koordinasi komunikasi lapangan",
-                  "Pemanfaatan jaringan anggota",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-3 text-sm text-slate-600"
-                  >
-                    <CheckCircle2
-                      size={17}
-                      className="shrink-0 text-[#003b70]"
-                    />
-                    {item}
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 flex items-center gap-2 text-sm font-bold text-[#003b70]">
-                Dukungan komunikasi
-                <ArrowRight
-                  size={17}
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                />
-              </div>
-            </article>
-
-            {/* RPU */}
-            <article className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-50 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-              <div className="grid h-full lg:grid-cols-[1.05fr_0.95fr]">
-                {/* Informasi */}
-                <div className="p-7 sm:p-9">
-                  <div className="flex items-start justify-between">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#003b70] text-white">
-                      <Radio size={27} />
-                    </div>
-
-                    <span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#003b70] shadow-sm">
-                      Jaringan Radio
-                    </span>
-                  </div>
-
-                  <p className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-[#b30000]">
-                    03 · RPU
-                  </p>
-
-                  <h2 className="mt-2 text-2xl font-bold text-[#003b70] sm:text-3xl">
-                    Radio Pancar Ulang
-                  </h2>
-
-                  <p className="mt-4 text-sm leading-7 text-slate-600">
-                    Jaringan komunikasi yang membantu memperluas jangkauan
-                    komunikasi radio anggota dalam wilayah layanan.
-                  </p>
-
-                  {/* Panel status */}
-                  <div className="mt-7 grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl bg-white p-4 shadow-sm">
-                      <div className="flex items-center gap-2">
-                        <Activity size={15} className="text-[#b30000]" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Jaringan
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm font-bold text-[#003b70]">
-                        RPU ORARI
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl bg-white p-4 shadow-sm">
-                      <div className="flex items-center gap-2">
-                        <Network size={15} className="text-[#003b70]" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Fungsi
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm font-bold text-[#003b70]">
-                        Komunikasi
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Foto */}
-                <div className="relative min-h-[280px] overflow-hidden lg:min-h-full">
-                  <img
-                    src="/images/layanan-radio.png"
-                    alt="Ilustrasi jaringan komunikasi radio"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#003b70]/70 via-transparent to-transparent" />
-
-                  <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/20 bg-black/20 p-4 backdrop-blur-md">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
-                      Jaringan komunikasi
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-white">
-                      Terhubung melalui radio
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================
-          PEMBINAAN
-         ========================================================= */}
-      <section className="py-8 sm:py-10">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <article className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm sm:p-10 lg:p-12">
-            <div className="pointer-events-none absolute right-0 top-0 h-56 w-56 rounded-full bg-[#003b70]/[0.03]" />
-
-            <div className="relative grid gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div className="max-w-3xl">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#b30000]/8 text-[#b30000]">
-                    <GraduationCap size={27} />
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#b30000]">
-                      04 · Pendidikan
-                    </p>
-                    <h2 className="mt-1 text-2xl font-bold text-[#003b70] sm:text-3xl">
-                      Pembinaan & Edukasi
-                    </h2>
-                  </div>
-                </div>
-
-                <p className="mt-6 text-sm leading-7 text-slate-600 sm:text-base">
-                  Pengenalan komunikasi radio dan pembinaan kegiatan amatir
-                  radio untuk lingkungan pendidikan, termasuk universitas, SMA,
-                  dan sederajat.
+                <p className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-[#b30000]">
+                  01 · CORE
                 </p>
 
-                <div className="mt-7 flex flex-wrap gap-3">
-                  {["Universitas", "SMA", "SMK", "Sederajat"].map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-[#003b70]"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
+                <h2 className="mt-2 text-3xl font-bold text-[#003b70] sm:text-4xl">
+                  Communication & Radio Emergency
+                </h2>
 
-              <div className="hidden lg:block">
-                <div className="flex h-28 w-28 items-center justify-center rounded-full border border-[#003b70]/10 bg-[#003b70]/[0.03]">
-                  <GraduationCap
-                    size={48}
-                    strokeWidth={1.3}
-                    className="text-[#003b70]"
-                  />
+                <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">
+                  Dukungan komunikasi radio untuk kebutuhan keadaan darurat,
+                  kebencanaan, dan situasi yang membutuhkan koordinasi
+                  komunikasi lapangan.
+                </p>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                  {[
+                    "Dukungan komunikasi keadaan darurat",
+                    "Koordinasi komunikasi lapangan",
+                    "Pemanfaatan jaringan amatir radio",
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className="flex items-start gap-3 rounded-2xl border border-[#003b70]/10 bg-white/55 p-4 text-sm text-slate-600 shadow-sm"
+                    >
+                      <CheckCircle2
+                        size={17}
+                        className="mt-0.5 shrink-0 text-[#003b70]"
+                      />
+
+                      <span>{item}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -313,7 +128,203 @@ export default function LayananPage() {
       </section>
 
       {/* =========================================================
-          ALUR — DARI SINYAL MENJADI DUKUNGAN
+          LAYANAN PENDUKUNG
+         ========================================================= */}
+      <section className="py-8 sm:py-10">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mb-8">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#b30000]">
+              Layanan Pendukung
+            </p>
+
+            <h2 className="mt-2 text-2xl font-bold text-[#003b70] sm:text-3xl">
+              Dukungan komunikasi untuk berbagai kebutuhan
+            </h2>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* PEMERINTAH */}
+            <article className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+              <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                <img
+                  src="/images/layanan-dukom-pemerintah.png"
+                  alt="Dukungan komunikasi pemerintahan ORARI Lokal Majene"
+                  className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-[1.02]"
+                />
+
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#003b70]/20 via-transparent to-transparent" />
+
+                <div className="absolute left-5 top-5">
+                  <span className="rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#b30000] shadow-sm">
+                    Berdasarkan MoU
+                  </span>
+                </div>
+
+                <div className="absolute bottom-5 left-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#003b70]/80 text-white backdrop-blur-sm">
+                  <Building2 size={22} />
+                </div>
+              </div>
+
+              <div className="p-7">
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#b30000]">
+                  02 · Pemerintah
+                </p>
+
+                <h2 className="mt-2 text-2xl font-bold text-[#003b70]">
+                  Dukungan Komunikasi Pemerintahan
+                </h2>
+
+                <p className="mt-4 text-sm leading-7 text-slate-600">
+                  Dukungan komunikasi radio untuk berbagai kegiatan pemerintah
+                  yang telah disepakati dalam kerja sama dengan ORARI Lokal
+                  Majene.
+                </p>
+
+                <div className="mt-6 space-y-3">
+                  {[
+                    "Dukungan komunikasi kegiatan",
+                    "Koordinasi komunikasi lapangan",
+                    "Pemanfaatan jaringan anggota",
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className="flex items-start gap-3 text-sm text-slate-600"
+                    >
+                      <CheckCircle2
+                        size={17}
+                        className="mt-0.5 shrink-0 text-[#003b70]"
+                      />
+
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </article>
+
+            {/* RPU */}
+            <article className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+              <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                <img
+                  src="/images/layanan-radio.png"
+                  alt="Jaringan Radio Pancar Ulang ORARI Lokal Majene"
+                  className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-[1.02]"
+                />
+
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#003b70]/20 via-transparent to-transparent" />
+
+                <div className="absolute left-5 top-5">
+                  <span className="rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#003b70] shadow-sm">
+                    Jaringan Radio
+                  </span>
+                </div>
+
+                <div className="absolute bottom-5 left-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#003b70]/80 text-white backdrop-blur-sm">
+                  <Radio size={22} />
+                </div>
+              </div>
+
+              <div className="p-7">
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#b30000]">
+                  03 · RPU
+                </p>
+
+                <h2 className="mt-2 text-2xl font-bold text-[#003b70]">
+                  Radio Pancar Ulang
+                </h2>
+
+                <p className="mt-4 text-sm leading-7 text-slate-600">
+                  Jaringan komunikasi yang membantu memperluas jangkauan
+                  komunikasi radio anggota dalam wilayah layanan.
+                </p>
+
+                <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <div className="flex items-center gap-2">
+                      <Activity size={15} className="text-[#b30000]" />
+
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Jaringan
+                      </span>
+                    </div>
+
+                    <p className="mt-2 text-sm font-bold text-[#003b70]">
+                      RPU ORARI
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <div className="flex items-center gap-2">
+                      <Network size={15} className="text-[#003b70]" />
+
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Fungsi
+                      </span>
+                    </div>
+
+                    <p className="mt-2 text-sm font-bold text-[#003b70]">
+                      Komunikasi
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            {/* PEMBINAAN */}
+            <article className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+              <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                <img
+                  src="/images/layanan-pendidikan-pembinaan.png"
+                  alt="Pembinaan dan edukasi komunikasi radio ORARI Lokal Majene"
+                  className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-[1.02]"
+                />
+
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#003b70]/20 via-transparent to-transparent" />
+
+                <div className="absolute left-5 top-5">
+                  <span className="rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#003b70] shadow-sm">
+                    Pendidikan
+                  </span>
+                </div>
+
+                <div className="absolute bottom-5 left-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#003b70]/80 text-white backdrop-blur-sm">
+                  <GraduationCap size={22} />
+                </div>
+              </div>
+
+              <div className="p-7">
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#b30000]">
+                  04 · Pendidikan
+                </p>
+
+                <h2 className="mt-2 text-2xl font-bold text-[#003b70]">
+                  Pembinaan & Edukasi
+                </h2>
+
+                <p className="mt-4 text-sm leading-7 text-slate-600">
+                  Pengenalan komunikasi radio dan pembinaan kegiatan amatir
+                  radio untuk lingkungan pendidikan, termasuk universitas, SMA,
+                  dan sederajat.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {["Universitas", "SMA", "SMK", "Sederajat"].map((item) => (
+                    <span
+                      key={item}
+                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-[#003b70]"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================
+          ALUR
          ========================================================= */}
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
