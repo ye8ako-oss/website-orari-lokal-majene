@@ -2,12 +2,18 @@
    BERANDA — BERITA + BANNER/PENGUMUMAN + PORTAL
    ------------------------------------------------------------
    Berita dan banner diambil langsung dari Supabase.
+
+   Beranda hanya menampilkan 2 berita terbaru.
+   Seluruh berita tersedia di halaman /berita.
+
    Banner aktif berganti otomatis.
    ============================================================ */
 
 import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
+
 import { supabase } from "@/lib/supabase";
+
 import { SectionHeading } from "./section-heading";
 import { ScrollReveal } from "./scroll-reveal";
 import { Portal } from "./portal";
@@ -39,10 +45,11 @@ export async function Berita() {
     supabase
       .from("berita")
       .select("*")
+      .eq("publish", true)
       .order("created_at", {
         ascending: false,
       })
-      .limit(3),
+      .limit(2),
 
     supabase
       .from("banner")
@@ -54,11 +61,8 @@ export async function Berita() {
   ]);
 
   console.log("DATA BERITA HOMEPAGE:", latest);
-
   console.log("ERROR BERITA HOMEPAGE:", beritaError);
-
   console.log("DATA BANNER HOMEPAGE:", bannerData);
-
   console.log("ERROR BANNER HOMEPAGE:", bannerError);
 
   if (beritaError) {
@@ -85,6 +89,7 @@ export async function Berita() {
           {/* ==================================================
               KIRI — BERITA TERKINI
               ================================================== */}
+
           <div className="min-w-0">
             <SectionHeading
               eyebrow="Informasi Terkini"
@@ -113,7 +118,7 @@ export async function Berita() {
                   const teksBersih = item.isi
                     .replace(/<img\b[^>]*>/gi, "")
                     .replace(/<br\s*\/?>/gi, " ")
-                    .replace(/<\/p>/gi, " ")
+                    .replace(/<\/?p>/gi, " ")
                     .replace(/<[^>]*>/g, "")
                     .replace(/&nbsp;/gi, " ")
                     .replace(/&amp;/gi, "&")
@@ -138,7 +143,7 @@ export async function Berita() {
                             <img
                               src={item.gambar}
                               alt={item.judul}
-                              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                              className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
                             />
                           ) : (
                             <div className="flex h-full min-h-[220px] items-center justify-center text-sm text-slate-400">
@@ -148,6 +153,7 @@ export async function Berita() {
                         </div>
 
                         {/* INFORMASI BERITA */}
+
                         <div className="flex flex-col justify-center p-5 sm:p-6">
                           <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                             <Calendar size={13} className="text-[#B30000]" />
@@ -181,9 +187,13 @@ export async function Berita() {
               )}
             </div>
 
+            {/* ==================================================
+                LIHAT SEMUA BERITA
+                ================================================== */}
+
             <div className="mt-6">
               <Link
-                href="#berita"
+                href="/berita"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-[#003366] transition-colors hover:text-[#B30000]"
               >
                 Lihat semua berita
@@ -195,14 +205,16 @@ export async function Berita() {
           {/* ==================================================
               KANAN — BANNER/PENGUMUMAN + PORTAL
               ================================================== */}
+
           <aside className="min-w-0 lg:pt-[2px]">
             <ScrollReveal variant="right">
               <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 {/* JUDUL PENGUMUMAN */}
+
                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#B30000]">
-                      INFROMASI TERKINI
+                      INFORMASI TERKINI
                     </p>
 
                     <h3 className="mt-0.5 font-heading text-lg font-bold text-[#003366]">
@@ -212,6 +224,7 @@ export async function Berita() {
                 </div>
 
                 {/* BANNER DARI SUPABASE */}
+
                 <div className="bg-slate-100 p-3 sm:p-4">
                   <div className="mx-auto w-full max-w-md">
                     <BannerSlider

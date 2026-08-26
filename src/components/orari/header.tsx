@@ -20,7 +20,7 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { label: "Beranda", href: "/" },
   { label: "Profil", href: "/profil" },
-  { label: "Berita", href: "/#berita" },
+  { label: "Berita", href: "/berita" },
   { label: "Layanan", href: "/layanan" },
   { label: "Dokumen", href: "/dokumen" },
   { label: "Kontak", href: "/#kontak" },
@@ -126,8 +126,8 @@ export function Header() {
       return pathname === "/dokumen";
     }
 
-    if (href === "/#berita") {
-      return pathname === "/" && activeSection === "berita";
+    if (href === "/berita") {
+      return pathname === "/berita" || pathname.startsWith("/berita/");
     }
 
     if (href === "/#kontak") {
