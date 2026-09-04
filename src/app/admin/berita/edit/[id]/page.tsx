@@ -14,6 +14,7 @@ type Berita = {
   isi: string;
   gambar: string | null;
   publish: boolean;
+  author_id: string | null;
 };
 
 export default function EditBeritaPage() {
@@ -28,6 +29,7 @@ export default function EditBeritaPage() {
   const [gambar, setGambar] = useState("");
   const [fileGambar, setFileGambar] = useState<File | null>(null);
   const [publish, setPublish] = useState(true);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const [loadingData, setLoadingData] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -64,6 +66,24 @@ export default function EditBeritaPage() {
 
         return;
       }
+
+      const { data: adminData, error: adminError } = await supabase
+        .from("admin_users")
+        .select("role, aktif")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (
+        adminError ||
+        !adminData?.aktif ||
+        (adminData.role !== "SUPER_ADMIN" && data.author_id !== user.id)
+      ) {
+        setError("Anda tidak memiliki akses untuk mengedit berita ini.");
+        setLoadingData(false);
+        return;
+      }
+
+      setIsSuperAdmin(adminData.role === "SUPER_ADMIN");
 
       setJudul(data.judul);
       setSlug(data.slug);
@@ -266,7 +286,7 @@ export default function EditBeritaPage() {
      *
      * Isi berita berasal langsung dari NewsEditor.
      */
-    const { error: updateError } = await supabase
+    let updateQuery = supabase
       .from("berita")
       .update({
         judul: judul.trim(),
@@ -276,6 +296,12 @@ export default function EditBeritaPage() {
         publish,
       })
       .eq("id", id);
+
+    if (!isSuperAdmin) {
+      updateQuery = updateQuery.eq("author_id", user.id);
+    }
+
+    const { error: updateError } = await updateQuery;
 
     if (updateError) {
       console.error("ERROR UPDATE BERITA:", updateError);

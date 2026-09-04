@@ -179,6 +179,7 @@ export default function TambahBeritaPage() {
       const publishedAt = publish ? new Date().toISOString() : null;
 
       const { error: insertError } = await supabase.from("berita").insert({
+        author_id: user.id,
         judul: judul.trim(),
         slug: slug.trim(),
         isi: isiHTML,

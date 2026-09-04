@@ -27,8 +27,6 @@ export default function AdminUsersPage() {
   const [password, setPassword] = useState("");
 
   async function loadAdmins() {
-    setLoading(true);
-
     try {
       const {
         data: { user },
@@ -60,7 +58,11 @@ export default function AdminUsersPage() {
   }
 
   useEffect(() => {
-    loadAdmins();
+    const timeoutId = window.setTimeout(() => {
+      void loadAdmins();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   async function handleTambahAdmin(event: FormEvent<HTMLFormElement>) {

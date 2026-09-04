@@ -22,6 +22,7 @@ type Berita = {
   isi: string;
   gambar: string | null;
   publish: boolean;
+  author_id: string | null;
 };
 
 export default function KelolaBeritaPage() {
@@ -31,6 +32,8 @@ export default function KelolaBeritaPage() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [cleaning, setCleaning] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
     async function loadBerita() {
@@ -42,6 +45,21 @@ export default function KelolaBeritaPage() {
         router.replace("/admin/login");
         return;
       }
+
+      const { data: adminData, error: adminError } = await supabase
+        .from("admin_users")
+        .select("role, aktif")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (adminError || !adminData?.aktif) {
+        await supabase.auth.signOut();
+        router.replace("/admin/login");
+        return;
+      }
+
+      setCurrentUserId(user.id);
+      setIsSuperAdmin(adminData.role === "SUPER_ADMIN");
 
       const { data, error } = await supabase
         .from("berita")
@@ -136,6 +154,11 @@ export default function KelolaBeritaPage() {
   }
 
   async function handleDelete(item: Berita) {
+    if (!isSuperAdmin) {
+      alert("Hanya Super Admin yang dapat menghapus berita.");
+      return;
+    }
+
     const yakin = window.confirm(
       `Apakah Anda yakin ingin menghapus berita:\n\n"${item.judul}"?\n\nBerita dan foto terkait akan dihapus dan tidak dapat dikembalikan.`,
     );
@@ -165,6 +188,11 @@ export default function KelolaBeritaPage() {
   }
 
   async function handleCleanUnusedPhotos() {
+    if (!isSuperAdmin) {
+      alert("Hanya Super Admin yang dapat membersihkan foto berita.");
+      return;
+    }
+
     const yakin = window.confirm(
       "Sistem akan mencari file foto di Storage yang tidak lagi digunakan oleh berita.\n\n" +
         "Foto yang masih digunakan oleh berita TIDAK akan dihapus.\n\n" +
@@ -398,7 +426,7 @@ export default function KelolaBeritaPage() {
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row">
-              <button
+              {isSuperAdmin && <button
                 type="button"
                 onClick={handleCleanUnusedPhotos}
                 disabled={cleaning}
@@ -411,7 +439,7 @@ export default function KelolaBeritaPage() {
                 )}
 
                 {cleaning ? "Membersihkan..." : "Bersihkan Foto Tidak Terpakai"}
-              </button>
+              </button>}
 
               <button
                 type="button"
@@ -500,6 +528,12 @@ export default function KelolaBeritaPage() {
                           /berita/{item.slug}
                         </p>
 
+                        <p className="mt-1 text-xs font-medium text-gray-500">
+                          {item.author_id === currentUserId
+                            ? "Berita Anda"
+                            : "Berita admin lain"}
+                        </p>
+
                         <p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-600">
                           {getRingkasan(item.isi)}
                         </p>
@@ -518,7 +552,7 @@ export default function KelolaBeritaPage() {
                           </button>
                         )}
 
-                        <button
+                        {(isSuperAdmin || item.author_id === currentUserId) && <button
                           type="button"
                           onClick={() =>
                             router.push(`/admin/berita/edit/${item.id}`)
@@ -527,9 +561,9 @@ export default function KelolaBeritaPage() {
                         >
                           <Edit size={15} />
                           Edit
-                        </button>
+                        </button>}
 
-                        <button
+                        {isSuperAdmin && <button
                           type="button"
                           onClick={() => handleDelete(item)}
                           disabled={deletingId === item.id}
@@ -538,7 +572,7 @@ export default function KelolaBeritaPage() {
                           <Trash2 size={15} />
 
                           {deletingId === item.id ? "Menghapus..." : "Hapus"}
-                        </button>
+                        </button>}
                       </div>
                     </div>
                   </div>

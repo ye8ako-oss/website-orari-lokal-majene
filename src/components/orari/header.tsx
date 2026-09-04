@@ -54,11 +54,6 @@ export function Header() {
      SCROLL SPY
      ============================================================ */
   useEffect(() => {
-    if (pathname === "/profil") {
-      setActiveSection("profil");
-      return;
-    }
-
     if (pathname !== "/") {
       return;
     }
@@ -97,13 +92,6 @@ export function Header() {
     return () => {
       observer.disconnect();
     };
-  }, [pathname]);
-
-  /* ============================================================
-     TUTUP MENU MOBILE SAAT PINDAH HALAMAN
-     ============================================================ */
-  useEffect(() => {
-    setMenuOpen(false);
   }, [pathname]);
 
   /* ============================================================

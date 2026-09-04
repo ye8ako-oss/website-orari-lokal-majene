@@ -62,6 +62,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { data: admin, error: adminError } = await supabaseAdmin
+      .from("admin_users")
+      .select("role, aktif")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (adminError) {
+      console.error("GAGAL MEMERIKSA HAK AKSES ADMIN:", adminError);
+
+      return NextResponse.json(
+        { error: "Gagal memeriksa hak akses admin." },
+        { status: 500 },
+      );
+    }
+
+    if (!admin?.aktif || admin.role !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Hanya Super Admin yang dapat menghapus banner." },
+        { status: 403 },
+      );
+    }
+
     /*
      * =====================================================
      * 3. Ambil data dari request
