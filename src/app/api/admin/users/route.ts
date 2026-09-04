@@ -36,7 +36,105 @@ const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
  * Hanya SUPER_ADMIN yang boleh menjalankan fungsi ini.
  * ============================================================
  */
+export async function GET(request: NextRequest) {
+  try {
+    const authorization = request.headers.get("authorization");
 
+    if (!authorization?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Sesi login tidak ditemukan." },
+        { status: 401 },
+      );
+    }
+
+    const accessToken = authorization.replace("Bearer ", "").trim();
+
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: "Access token tidak ditemukan." },
+        { status: 401 },
+      );
+    }
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      console.error("GAGAL MEMVERIFIKASI USER:", userError);
+      return NextResponse.json(
+        { error: "Sesi login tidak valid." },
+        { status: 401 },
+      );
+    }
+
+    const { data: adminPemanggil, error: adminError } = await supabaseAdmin
+      .from("admin_users")
+      .select("id, username, nama, role, aktif")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (adminError) {
+      console.error("GAGAL MEMERIKSA ADMIN:", adminError);
+      return NextResponse.json(
+        { error: "Gagal memeriksa hak akses admin." },
+        { status: 500 },
+      );
+    }
+
+    if (!adminPemanggil) {
+      return NextResponse.json(
+        { error: "User tidak terdaftar sebagai admin." },
+        { status: 403 },
+      );
+    }
+
+    if (!adminPemanggil.aktif) {
+      return NextResponse.json(
+        { error: "Akun admin Anda tidak aktif." },
+        { status: 403 },
+      );
+    }
+
+    if (adminPemanggil.role !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Hanya Super Admin yang dapat melihat daftar admin." },
+        { status: 403 },
+      );
+    }
+
+    const { data: admins, error: adminsError } = await supabaseAdmin
+      .from("admin_users")
+      .select("id, user_id, username, nama, role, aktif, created_at")
+      .order("created_at", { ascending: true });
+
+    if (adminsError) {
+      console.error("GAGAL MEMUAT DAFTAR ADMIN:", adminsError);
+      return NextResponse.json(
+        { error: "Gagal memuat daftar admin." },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      admins: admins ?? [],
+    });
+  } catch (error) {
+    console.error("ERROR GET ADMIN USERS:", error);
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan pada server.",
+      },
+      { status: 500 },
+    );
+  }
+}
 export async function POST(request: NextRequest) {
   try {
     /*

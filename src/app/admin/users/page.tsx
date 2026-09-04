@@ -29,26 +29,30 @@ export default function AdminUsersPage() {
   async function loadAdmins() {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (!session?.access_token) {
         router.replace("/admin/login");
         return;
       }
 
-      const { data, error } = await supabase
-        .from("admin_users")
-        .select("id, user_id, username, nama, role, aktif, created_at")
-        .order("created_at", { ascending: true });
+      const response = await fetch("/api/admin/users", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
-      if (error) {
-        console.error("ERROR MEMUAT ADMIN:", error);
-        alert("Gagal memuat daftar admin.");
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error("ERROR MEMUAT ADMIN:", result.error);
+        alert(result.error || "Gagal memuat daftar admin.");
         return;
       }
 
-      setAdmins(data ?? []);
+      setAdmins(result.admins ?? []);
     } catch (error) {
       console.error("ERROR:", error);
       alert("Terjadi kesalahan saat memuat admin.");
@@ -56,13 +60,8 @@ export default function AdminUsersPage() {
       setLoading(false);
     }
   }
-
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadAdmins();
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
+    loadAdmins();
   }, []);
 
   async function handleTambahAdmin(event: FormEvent<HTMLFormElement>) {
