@@ -1,5 +1,12 @@
 -- Jalankan SETELAH versi aplikasi dengan author_id sudah dideploy dan diuji.
 
+-- Hapus policy lama yang memberi setiap pengguna terautentikasi akses penuh.
+drop policy if exists "Admin can delete news" on public.berita;
+drop policy if exists "Admin can insert news" on public.berita;
+drop policy if exists "Admin can update news" on public.berita;
+drop policy if exists "Authenticated users can read news" on public.berita;
+drop policy if exists "Public can read published news" on public.berita;
+
 create or replace function public.current_admin_role()
 returns text
 language sql
