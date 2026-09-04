@@ -60,9 +60,11 @@ export default function AdminUsersPage() {
       setLoading(false);
     }
   }
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     loadAdmins();
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function handleTambahAdmin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
