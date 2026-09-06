@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   FileText,
   ImagePlus,
+  KeyRound,
   LogOut,
   Newspaper,
   Plus,
@@ -82,7 +83,9 @@ export default function AdminPage() {
               </p>
 
               <h1 className="mt-1 text-2xl font-bold text-[#001f3f] sm:text-3xl">
-                Dashboard Admin
+                {userRole === "SUPER_ADMIN"
+                  ? "Dashboard Super Admin"
+                  : "Dashboard Admin"}
               </h1>
 
               <p className="mt-2 text-sm text-gray-500">
@@ -211,6 +214,43 @@ export default function AdminPage() {
               <div className="mt-5 text-sm font-semibold text-[#001f3f] transition group-hover:text-green-700">
                 Buka Pengelolaan Dokumen →
               </div>
+            </button>
+          </div>
+        </div>
+
+        {/* AKUN SAYA */}
+        <div className="mt-6 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#001f3f]">
+                  <KeyRound size={22} />
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-bold text-[#001f3f] sm:text-xl">
+                    Akun Saya
+                  </h2>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Kelola keamanan akun dan password Anda.
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-sm leading-6 text-gray-500">
+                Ganti password secara berkala untuk menjaga keamanan akun admin
+                website ORARI Lokal Majene.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push("/admin/password")}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#001f3f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#003366]"
+            >
+              <KeyRound size={17} />
+              Ganti Password
             </button>
           </div>
         </div>

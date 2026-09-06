@@ -4,22 +4,9 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl) {
-  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+if (!supabaseUrl || !serviceRoleKey) {
+  throw new Error("Supabase environment variables belum lengkap.");
 }
-
-if (!serviceRoleKey) {
-  throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
-}
-
-/*
- * ============================================================
- * CLIENT SERVER DENGAN SERVICE ROLE
- *
- * HANYA digunakan di server.
- * JANGAN pernah dipindahkan ke client/browser.
- * ============================================================
- */
 
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
@@ -28,282 +15,149 @@ const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
   },
 });
 
-/*
- * ============================================================
- * POST
- * Membuat admin baru.
- *
- * Hanya SUPER_ADMIN yang boleh menjalankan fungsi ini.
- * ============================================================
- */
-export async function GET(request: NextRequest) {
-  try {
-    const authorization = request.headers.get("authorization");
+async function getSuperAdmin(request: NextRequest) {
+  const authorization = request.headers.get("authorization");
 
-    if (!authorization?.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Sesi login tidak ditemukan." },
+  if (!authorization?.startsWith("Bearer ")) {
+    return {
+      error: NextResponse.json(
+        { error: "Authorization tidak ditemukan." },
         { status: 401 },
-      );
-    }
+      ),
+    };
+  }
 
-    const accessToken = authorization.replace("Bearer ", "").trim();
+  const accessToken = authorization.replace("Bearer ", "").trim();
 
-    if (!accessToken) {
-      return NextResponse.json(
+  if (!accessToken) {
+    return {
+      error: NextResponse.json(
         { error: "Access token tidak ditemukan." },
         { status: 401 },
-      );
-    }
+      ),
+    };
+  }
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseAdmin.auth.getUser(accessToken);
+  const {
+    data: { user },
+    error: userError,
+  } = await supabaseAdmin.auth.getUser(accessToken);
 
-    if (userError || !user) {
-      console.error("GAGAL MEMVERIFIKASI USER:", userError);
-      return NextResponse.json(
+  if (userError || !user) {
+    return {
+      error: NextResponse.json(
         { error: "Sesi login tidak valid." },
         { status: 401 },
-      );
-    }
+      ),
+    };
+  }
 
-    const { data: adminPemanggil, error: adminError } = await supabaseAdmin
-      .from("admin_users")
-      .select("id, username, nama, role, aktif")
-      .eq("user_id", user.id)
-      .maybeSingle();
+  const { data: callerAdmin, error: callerError } = await supabaseAdmin
+    .from("admin_users")
+    .select("id, user_id, username, nama, role, aktif")
+    .eq("user_id", user.id)
+    .single();
 
-    if (adminError) {
-      console.error("GAGAL MEMERIKSA ADMIN:", adminError);
-      return NextResponse.json(
-        { error: "Gagal memeriksa hak akses admin." },
-        { status: 500 },
-      );
-    }
-
-    if (!adminPemanggil) {
-      return NextResponse.json(
-        { error: "User tidak terdaftar sebagai admin." },
+  if (callerError || !callerAdmin) {
+    return {
+      error: NextResponse.json(
+        { error: "Data admin tidak ditemukan." },
         { status: 403 },
-      );
-    }
+      ),
+    };
+  }
 
-    if (!adminPemanggil.aktif) {
-      return NextResponse.json(
-        { error: "Akun admin Anda tidak aktif." },
+  if (!callerAdmin.aktif) {
+    return {
+      error: NextResponse.json(
+        { error: "Akun admin Anda sedang nonaktif." },
         { status: 403 },
-      );
-    }
+      ),
+    };
+  }
 
-    if (adminPemanggil.role !== "SUPER_ADMIN") {
-      return NextResponse.json(
-        { error: "Hanya Super Admin yang dapat melihat daftar admin." },
+  if (callerAdmin.role !== "SUPER_ADMIN") {
+    return {
+      error: NextResponse.json(
+        { error: "Akses hanya untuk Super Admin." },
         { status: 403 },
-      );
+      ),
+    };
+  }
+
+  return {
+    user,
+    callerAdmin,
+  };
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await getSuperAdmin(request);
+
+    if ("error" in auth) {
+      return auth.error;
     }
 
-    const { data: admins, error: adminsError } = await supabaseAdmin
+    const { data: admins, error } = await supabaseAdmin
       .from("admin_users")
       .select("id, user_id, username, nama, role, aktif, created_at")
       .order("created_at", { ascending: true });
 
-    if (adminsError) {
-      console.error("GAGAL MEMUAT DAFTAR ADMIN:", adminsError);
+    if (error) {
+      console.error("ERROR GET ADMIN:", error);
+
       return NextResponse.json(
-        { error: "Gagal memuat daftar admin." },
+        { error: "Gagal mengambil daftar admin." },
         { status: 500 },
       );
     }
 
     return NextResponse.json({
-      success: true,
       admins: admins ?? [],
     });
   } catch (error) {
-    console.error("ERROR GET ADMIN USERS:", error);
+    console.error("ERROR GET ADMIN:", error);
 
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Terjadi kesalahan pada server.",
-      },
+      { error: "Terjadi kesalahan pada server." },
       { status: 500 },
     );
   }
 }
+
 export async function POST(request: NextRequest) {
   try {
-    /*
-     * ========================================================
-     * 1. AMBIL ACCESS TOKEN DARI REQUEST
-     * ========================================================
-     */
+    const auth = await getSuperAdmin(request);
 
-    const authorization = request.headers.get("authorization");
-
-    if (!authorization?.startsWith("Bearer ")) {
-      return NextResponse.json(
-        {
-          error: "Sesi login tidak ditemukan.",
-        },
-        {
-          status: 401,
-        },
-      );
+    if ("error" in auth) {
+      return auth.error;
     }
-
-    const accessToken = authorization.replace("Bearer ", "").trim();
-
-    if (!accessToken) {
-      return NextResponse.json(
-        {
-          error: "Access token tidak ditemukan.",
-        },
-        {
-          status: 401,
-        },
-      );
-    }
-
-    /*
-     * ========================================================
-     * 2. VERIFIKASI USER YANG MEMANGGIL API
-     * ========================================================
-     */
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseAdmin.auth.getUser(accessToken);
-
-    if (userError || !user) {
-      console.error("GAGAL MEMVERIFIKASI USER:", userError);
-
-      return NextResponse.json(
-        {
-          error: "Sesi login tidak valid.",
-        },
-        {
-          status: 401,
-        },
-      );
-    }
-
-    /*
-     * ========================================================
-     * 3. PERIKSA ROLE USER
-     * ========================================================
-     */
-
-    const { data: adminPemanggil, error: adminError } = await supabaseAdmin
-      .from("admin_users")
-      .select("id, username, nama, role, aktif")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (adminError) {
-      console.error("GAGAL MEMERIKSA ADMIN:", adminError);
-
-      return NextResponse.json(
-        {
-          error: "Gagal memeriksa hak akses admin.",
-        },
-        {
-          status: 500,
-        },
-      );
-    }
-
-    if (!adminPemanggil) {
-      return NextResponse.json(
-        {
-          error: "User tidak terdaftar sebagai admin.",
-        },
-        {
-          status: 403,
-        },
-      );
-    }
-
-    if (!adminPemanggil.aktif) {
-      return NextResponse.json(
-        {
-          error: "Akun admin Anda tidak aktif.",
-        },
-        {
-          status: 403,
-        },
-      );
-    }
-
-    if (adminPemanggil.role !== "SUPER_ADMIN") {
-      return NextResponse.json(
-        {
-          error: "Hanya Super Admin yang dapat menambahkan admin.",
-        },
-        {
-          status: 403,
-        },
-      );
-    }
-
-    /*
-     * ========================================================
-     * 4. AMBIL DATA ADMIN BARU
-     * ========================================================
-     */
 
     const body = await request.json();
 
-    const username =
-      typeof body.username === "string"
-        ? body.username.trim().toUpperCase()
-        : "";
+    const username = String(body.username ?? "")
+      .trim()
+      .toUpperCase();
+    const nama = String(body.nama ?? "").trim();
+    const password = String(body.password ?? "");
 
-    const nama = typeof body.nama === "string" ? body.nama.trim() : "";
-
-    const password = typeof body.password === "string" ? body.password : "";
-
-    /*
-     * ========================================================
-     * 5. VALIDASI
-     * ========================================================
-     */
-
-    if (!username) {
+    if (!username || !nama || !password) {
       return NextResponse.json(
         {
-          error: "Username wajib diisi.",
+          error: "Username, nama, dan password wajib diisi.",
         },
-        {
-          status: 400,
-        },
+        { status: 400 },
       );
     }
 
     if (!/^[A-Z0-9]+$/.test(username)) {
       return NextResponse.json(
         {
-          error: "Username hanya boleh menggunakan huruf dan angka.",
+          error:
+            "Username hanya boleh berisi huruf dan angka, tanpa spasi atau simbol.",
         },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    if (!nama) {
-      return NextResponse.json(
-        {
-          error: "Nama admin wajib diisi.",
-        },
-        {
-          status: 400,
-        },
+        { status: 400 },
       );
     }
 
@@ -312,100 +166,62 @@ export async function POST(request: NextRequest) {
         {
           error: "Password minimal 8 karakter.",
         },
-        {
-          status: 400,
-        },
+        { status: 400 },
       );
     }
 
-    /*
-     * ========================================================
-     * 6. PERIKSA USERNAME
-     * ========================================================
-     */
-
-    const { data: usernameExisting, error: usernameError } = await supabaseAdmin
+    const { data: existingAdmin, error: existingError } = await supabaseAdmin
       .from("admin_users")
-      .select("id, username")
+      .select("id")
       .eq("username", username)
       .maybeSingle();
 
-    if (usernameError) {
-      console.error("GAGAL MEMERIKSA USERNAME:", usernameError);
+    if (existingError) {
+      console.error("ERROR CEK USERNAME:", existingError);
 
       return NextResponse.json(
         {
           error: "Gagal memeriksa username.",
         },
-        {
-          status: 500,
-        },
+        { status: 500 },
       );
     }
 
-    if (usernameExisting) {
+    if (existingAdmin) {
       return NextResponse.json(
         {
           error: `Username ${username} sudah digunakan.`,
         },
-        {
-          status: 409,
-        },
+        { status: 400 },
       );
     }
 
-    /*
-     * ========================================================
-     * 7. EMAIL INTERNAL
-     *
-     * User tetap login menggunakan USERNAME.
-     *
-     * Email ini hanya digunakan Supabase Auth di belakang layar.
-     *
-     * Tidak perlu merupakan email Gmail nyata.
-     * ========================================================
-     */
+    const email = `${username.toLowerCase()}@admin.orarilokalmajene.local`;
 
-    const internalEmail = `${username.toLowerCase()}@admin.orarilokalmajene.local`;
-
-    /*
-     * ========================================================
-     * 8. BUAT USER SUPABASE AUTH
-     * ========================================================
-     */
-
-    const { data: authData, error: authError } =
+    const { data: createdAuthUser, error: createAuthError } =
       await supabaseAdmin.auth.admin.createUser({
-        email: internalEmail,
+        email,
         password,
         email_confirm: true,
       });
 
-    if (authError || !authData.user) {
-      console.error("GAGAL MEMBUAT USER AUTH:", authError);
+    if (createAuthError || !createdAuthUser.user) {
+      console.error("ERROR CREATE AUTH USER:", createAuthError);
 
       return NextResponse.json(
         {
-          error: authError?.message || "Gagal membuat akun admin.",
+          error: createAuthError?.message || "Gagal membuat akun login admin.",
         },
-        {
-          status: 500,
-        },
+        { status: 500 },
       );
     }
 
-    const newUserId = authData.user.id;
+    const authUserId = createdAuthUser.user.id;
 
-    /*
-     * ========================================================
-     * 9. MASUKKAN KE admin_users
-     * ========================================================
-     */
-
-    const { data: adminBaru, error: insertError } = await supabaseAdmin
+    const { data: createdAdmin, error: createAdminError } = await supabaseAdmin
       .from("admin_users")
       .insert({
-        user_id: newUserId,
+        user_id: authUserId,
         username,
         nama,
         role: "ADMIN",
@@ -414,58 +230,380 @@ export async function POST(request: NextRequest) {
       .select("id, user_id, username, nama, role, aktif, created_at")
       .single();
 
-    /*
-     * ========================================================
-     * 10. JIKA DATABASE GAGAL
-     *
-     * Hapus kembali user Auth agar tidak terjadi akun yatim.
-     * ========================================================
-     */
+    if (createAdminError || !createdAdmin) {
+      console.error("ERROR INSERT ADMIN:", createAdminError);
 
-    if (insertError) {
-      console.error("GAGAL MENYIMPAN admin_users:", insertError);
-
-      await supabaseAdmin.auth.admin.deleteUser(newUserId);
+      await supabaseAdmin.auth.admin.deleteUser(authUserId);
 
       return NextResponse.json(
         {
-          error: "Akun Auth gagal disinkronkan dengan data admin.",
+          error:
+            "Gagal menyimpan data admin. Akun login yang dibuat juga telah dibatalkan.",
         },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        message: `Admin ${username} berhasil dibuat.`,
+        admin: createdAdmin,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    console.error("ERROR POST ADMIN:", error);
+
+    return NextResponse.json(
+      {
+        error: "Terjadi kesalahan pada server.",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const auth = await getSuperAdmin(request);
+
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const body = await request.json();
+
+    const userId = String(body.user_id ?? "").trim();
+    const action = body.action;
+
+    if (!userId) {
+      return NextResponse.json(
         {
-          status: 500,
+          error: "user_id wajib diisi.",
         },
+        { status: 400 },
       );
     }
 
     /*
-     * ========================================================
-     * 11. BERHASIL
-     * ========================================================
+     * ============================================================
+     * AKTIF / NONAKTIF ADMIN
+     * ============================================================
      */
+    if (action === "status") {
+      if (typeof body.aktif !== "boolean") {
+        return NextResponse.json(
+          {
+            error: "Status aktif harus berupa true atau false.",
+          },
+          { status: 400 },
+        );
+      }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: `Admin ${username} berhasil dibuat.`,
-        admin: adminBaru,
-      },
-      {
-        status: 201,
-      },
-    );
+      const { data: targetAdmin, error: targetError } = await supabaseAdmin
+        .from("admin_users")
+        .select("id, user_id, username, nama, role, aktif, created_at")
+        .eq("user_id", userId)
+        .single();
+
+      if (targetError || !targetAdmin) {
+        return NextResponse.json(
+          {
+            error: "Admin yang akan diubah tidak ditemukan.",
+          },
+          { status: 404 },
+        );
+      }
+
+      if (targetAdmin.role === "SUPER_ADMIN") {
+        return NextResponse.json(
+          {
+            error: "Super Admin tidak dapat dinonaktifkan.",
+          },
+          { status: 403 },
+        );
+      }
+
+      if (targetAdmin.role !== "ADMIN") {
+        return NextResponse.json(
+          {
+            error: "Admin yang dipilih tidak valid.",
+          },
+          { status: 400 },
+        );
+      }
+
+      const { data: updatedAdmin, error: updateError } = await supabaseAdmin
+        .from("admin_users")
+        .update({
+          aktif: body.aktif,
+        })
+        .eq("user_id", userId)
+        .select("id, user_id, username, nama, role, aktif, created_at")
+        .single();
+
+      if (updateError || !updatedAdmin) {
+        console.error("ERROR UPDATE STATUS ADMIN:", updateError);
+
+        return NextResponse.json(
+          {
+            error: "Gagal mengubah status admin.",
+          },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json({
+        message: body.aktif
+          ? `Admin ${targetAdmin.username} berhasil diaktifkan.`
+          : `Admin ${targetAdmin.username} berhasil dinonaktifkan.`,
+        admin: updatedAdmin,
+      });
+    }
+
+    /*
+     * ============================================================
+     * RESET PASSWORD ADMIN
+     * ============================================================
+     *
+     * Bagian ini dipertahankan untuk fitur Reset Password
+     * yang sebelumnya sudah berhasil.
+     */
+    const password = String(body.password ?? "");
+
+    if (!password) {
+      return NextResponse.json(
+        {
+          error: "Password baru wajib diisi.",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json(
+        {
+          error: "Password minimal 8 karakter.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const { data: targetAdmin, error: targetError } = await supabaseAdmin
+      .from("admin_users")
+      .select("id, user_id, username, nama, role, aktif")
+      .eq("user_id", userId)
+      .single();
+
+    if (targetError || !targetAdmin) {
+      return NextResponse.json(
+        {
+          error: "Admin yang akan direset tidak ditemukan.",
+        },
+        { status: 404 },
+      );
+    }
+
+    if (targetAdmin.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        {
+          error: "Password Super Admin tidak dapat direset dari sini.",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (targetAdmin.role !== "ADMIN") {
+      return NextResponse.json(
+        {
+          error: "Admin yang dipilih tidak valid.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const { error: updatePasswordError } =
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password,
+      });
+
+    if (updatePasswordError) {
+      console.error("ERROR UPDATE PASSWORD:", updatePasswordError);
+
+      return NextResponse.json(
+        {
+          error: updatePasswordError.message || "Gagal mereset password admin.",
+        },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      message: `Password admin ${targetAdmin.username} berhasil direset.`,
+    });
   } catch (error) {
-    console.error("ERROR API ADMIN USERS:", error);
+    console.error("ERROR PATCH ADMIN:", error);
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Terjadi kesalahan pada server.",
+        error: "Terjadi kesalahan pada server.",
       },
+      { status: 500 },
+    );
+  }
+}
+export async function DELETE(request: NextRequest) {
+  try {
+    const auth = await getSuperAdmin(request);
+
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const body = await request.json();
+    const userId = String(body.user_id ?? "").trim();
+
+    if (!userId) {
+      return NextResponse.json(
+        {
+          error: "user_id wajib diisi.",
+        },
+        { status: 400 },
+      );
+    }
+
+    /*
+     * ============================================================
+     * CARI ADMIN YANG AKAN DIHAPUS
+     * ============================================================
+     */
+    const { data: targetAdmin, error: targetError } = await supabaseAdmin
+      .from("admin_users")
+      .select("id, user_id, username, nama, role, aktif, created_at")
+      .eq("user_id", userId)
+      .single();
+
+    if (targetError || !targetAdmin) {
+      return NextResponse.json(
+        {
+          error: "Admin yang akan dihapus tidak ditemukan.",
+        },
+        { status: 404 },
+      );
+    }
+
+    /*
+     * ============================================================
+     * PERLINDUNGAN SUPER ADMIN
+     * ============================================================
+     */
+    if (targetAdmin.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        {
+          error: "Super Admin tidak dapat dihapus.",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (targetAdmin.role !== "ADMIN") {
+      return NextResponse.json(
+        {
+          error: "Admin yang dipilih tidak valid.",
+        },
+        { status: 400 },
+      );
+    }
+
+    /*
+     * ============================================================
+     * LANGKAH 1
+     * NONAKTIFKAN TERLEBIH DAHULU
+     *
+     * Jika proses berikutnya gagal, admin tetap tidak dapat login.
+     * ============================================================
+     */
+    const { error: deactivateError } = await supabaseAdmin
+      .from("admin_users")
+      .update({
+        aktif: false,
+      })
+      .eq("user_id", userId);
+
+    if (deactivateError) {
+      console.error(
+        "ERROR MENONAKTIFKAN ADMIN SEBELUM DELETE:",
+        deactivateError,
+      );
+
+      return NextResponse.json(
+        {
+          error: "Gagal mengamankan akun admin sebelum proses penghapusan.",
+        },
+        { status: 500 },
+      );
+    }
+
+    /*
+     * ============================================================
+     * LANGKAH 2
+     * HAPUS USER DARI SUPABASE AUTH
+     * ============================================================
+     */
+    const { error: deleteAuthError } =
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (deleteAuthError) {
+      console.error("ERROR DELETE AUTH USER:", deleteAuthError);
+
+      return NextResponse.json(
+        {
+          error:
+            "Akun login admin gagal dihapus. Data admin tetap disimpan dalam keadaan nonaktif.",
+        },
+        { status: 500 },
+      );
+    }
+
+    /*
+     * ============================================================
+     * LANGKAH 3
+     * HAPUS RECORD DARI public.admin_users
+     * ============================================================
+     */
+    const { error: deleteDatabaseError } = await supabaseAdmin
+      .from("admin_users")
+      .delete()
+      .eq("user_id", userId);
+
+    if (deleteDatabaseError) {
+      console.error("ERROR DELETE ADMIN DATABASE:", deleteDatabaseError);
+
+      return NextResponse.json(
+        {
+          error:
+            "Akun login sudah dihapus dari Supabase Auth, tetapi data admin di database gagal dihapus. Periksa tabel admin_users.",
+        },
+        { status: 500 },
+      );
+    }
+
+    /*
+     * ============================================================
+     * BERHASIL
+     * ============================================================
+     */
+    return NextResponse.json({
+      message: `Admin ${targetAdmin.username} berhasil dihapus secara permanen.`,
+    });
+  } catch (error) {
+    console.error("ERROR DELETE ADMIN:", error);
+
+    return NextResponse.json(
       {
-        status: 500,
+        error: "Terjadi kesalahan pada server.",
       },
+      { status: 500 },
     );
   }
 }
